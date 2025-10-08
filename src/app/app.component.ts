@@ -62,7 +62,13 @@ export class AppComponent implements OnInit {
       icon: 'bi bi-file-earmark-text',
       shortLabel: 'FT0904',
       action: () => this.AbrirProgramaTotvs('ftp/ft0904.w'),
-    }
+    },
+    {
+      label: 'Envio para Histórico',
+      icon: 'bi bi-database-up',
+      link: '/envhist',
+      shortLabel: 'Envio para Histórico',
+    },
     
     
     /* não usando por enquanto
@@ -166,6 +172,7 @@ export class AppComponent implements OnInit {
     });
   }
 
+  /*---Não usada
   DesbloquearProcesso() {
     let params: any = { codEstabel: this.estabInfo.split(' ')[0], nrProcess: this.processoInfo }
     console.log(params)
@@ -175,7 +182,8 @@ export class AppComponent implements OnInit {
 
     this.srvTotvs46.Deslogar()
   }
-
+  ---não usada*/
+  
   ngOnInit(): void {
     //versao
     this.versao = environment.versao

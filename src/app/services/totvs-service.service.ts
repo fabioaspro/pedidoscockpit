@@ -23,8 +23,10 @@ export class TotvsService {
     nrProcesso: '',
   });
 
-  _url   = environment.totvs_url;
-  _url41 = environment.totvs41_url;
+  _url      = environment.totvs_url
+  _urlGeral = environment.totvs_url_geral
+
+  //_url41 = environment.totvs41_url;
   
   constructor(private http: HttpClient) {}
 
@@ -93,10 +95,11 @@ export class TotvsService {
 
   obterColunasConsolida(): Array<PoTableColumn> {
     return [
-      { property: 'nrConsolidacao',label: 'Consolidação', visible: true, type: 'number'},
+      { property: 'codEstabel',    label: 'Estab.',   visible: true, width: '120px'},
+      { property: 'nrConsolidacao',label: 'Nr.Cons.', visible: true, width: '140px', type: 'number'},
       { property: 'descEmitente',  label: 'Emitente' },
       { property: 'nomTransp',     label: 'Transporte', },
-      { property: 'userAlt',       label: 'Usuário' },
+      { property: 'userAlt',       label: 'Usuário' }, 
       { property: 'lConsolidado',  label: 'Consolidado' },
     ]
 
@@ -104,8 +107,8 @@ export class TotvsService {
 
   obterColunasConsolidaItems(): Array<PoTableColumn> {
     return [
-      { property: 'nrConsolidacao',label: 'Consolidação', visible: true, type: 'number'},
-      { property: 'cddEmbarqRes',  label: 'Resumo'},
+      { property: 'nrConsolidacao',label: 'Nr.Cons.', visible: true, width: '140px', type: 'number'},
+      { property: 'cddEmbarqRes',  label: 'Embarque/Res'},
       { property: 'cddEmbarq',     label: 'Embarque', visible: false},
       { property: 'nrResumo',      label: 'Resumo',   visible: false},
       { property: 'nrPedido',      label: 'Pedido' },
@@ -117,6 +120,27 @@ export class TotvsService {
 
   }
 
+  obterColunasFaturado(): Array<PoTableColumn> {
+    return [
+      { property: 'codEstabel',    label: 'Estab.',   visible: false, width: '120px'},
+      { property: 'nrConsolidacao',label: 'Nr.Cons.', visible: true,  width: '140px', type: 'number'},
+      { property: 'dtEmisNota',    label: 'Data'},
+      { property: 'cSerie',        label: 'Serie' },
+      { property: 'nrNotaFis',     label: 'Nota Fiscal' },      
+      { property: 'cddEmbarqRes',  label: 'Embarque/Res'},
+      { property: 'cddEmbarq',     label: 'Embarque', visible: false},
+      { property: 'nrResumo',      label: 'Resumo',   visible: false},
+      { property: 'descEmitente',  label: 'Emitente' },
+      { property: 'nomTransp',     label: 'Transporte', },
+      { property: 'lFaturado',     label: 'Faturado' },
+    ]
+
+  }
+
+  //---Faturar Embarque
+  public FaturarEmbarque(params?: any){
+    return this.http.post(`${this._url}/FaturarEmbarque`, params, {headers:headersTotvs}).pipe(take(1))  
+  }
   //---Calculo de Fretes  
   public ObterCalculoFrete(params?: any){
     return this.http.post(`${this._url}/ObterCalculoFrete`, params, {headers:headersTotvs}).pipe(take(1))
@@ -130,6 +154,16 @@ export class TotvsService {
   //--- Eliminar Pedido da Consolidação por id
   public EliminarPorId(params?: any) {
     return this.http.post(`${this._url}/EliminarPorId`, params, { headers: headersTotvs }).pipe(take(1));
+  }
+
+  //--- Atualizar Envio para Histórico
+  public onAttEnvHist(params?: any){
+    return this.http.get(`${this._urlGeral}/onAttEnvHist`, {params:params, headers:headersTotvs}).pipe(take(1));
+  }
+  
+  //--- Obter parametros de Cadastro
+  public ObterCadastro(params?: any){
+    return this.http.get(`${this._urlGeral}/ObterCadastro`, {params:params, headers:headersTotvs}).pipe(take(1));
   }
 
   //--- COMBOBOX TECNICOS
@@ -151,7 +185,7 @@ export class TotvsService {
   //--- COMBOBOX ESTABELECIMENTOS
   //Retorno transformado no formato {label: xxx, value: yyyy}
   public ObterEstabelecimentos(params?: any) {
-    return this.http.get<any>(`${this._url41}/ObterEstab`, { params: params, headers: headersTotvs })
+    return this.http.get<any>(`${this._url}/ObterEstab`, { params: params, headers: headersTotvs })
       .pipe(
         map((item) => {
           return item.items.map((item: any) => {
@@ -169,10 +203,10 @@ export class TotvsService {
   //--- COMBOBOX TRANSPORTES
   //Retorno transformado no formato {label: xxx, value: yyyy}
   public ObterTransportadoras() {
-    return this.http.get<any>(`${this._url41}/ObterTransp`, { headers: headersTotvs }).pipe(map((item) => {
+    return this.http.get<any>(`${this._url}/ObterTransp`, { headers: headersTotvs }).pipe(map((item) => {
       return item.items.map((item: any) => {
         return {
-          label: item.nomeAbrev, //item.codTransp + ' ' + item.nomeAbrev,
+          label: item.codTransp + ' ' + item.nomeAbrev,
           value: item.codTransp,
         };
       });

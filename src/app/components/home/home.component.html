@@ -5,116 +5,124 @@
 <po-stepper #stepper [p-step]="StepAtual" (p-change-step)="onChangeStep($event)">
 
   <po-step p-label="Dashboard" [p-can-active-next-step]="canActiveNextStep.bind(this)">
+      <div class='hero'>
+        <div class='homepage'>
 
-    <div class='hero'>
+            <po-widget class='po-md-12' [p-height]='alturaStepperSel'>
+              <div class='po-row' style='margin-bottom: 5px;'></div>
+              <div class='po-md-12'>
 
-      <div class="homepage">
+                  <po-widget class='po-md-12' style='margin-top: 5px;'>
 
-        <po-widget class="po-md-12" [p-height]="alturaStepper">
-       
-          <div class="card-container">
-            <div class="po-md-12">
-              <po-widget class="po-md-12" style="margin-top: 10px; ">
-                <div class="combo-com-botao" style="margin-left:10px;">
-                  <po-combo [ngModel]="codEstabelecimento" 
-                            (ngModelChange)="codEstabelecimento = $event"
-                    
-                            (p-change)="onEstabChange($event)" 
-                            p-clean="true" 
-                            [p-options]="listaEstabelecimentos"
-                    
-                            p-label="Estabelecimento" 
-                            p-icon="bi bi-pin-map" 
-                            [p-placeholder]="placeHolderEstabelecimento">
-                    <ng-template p-combo-option-template let-option>
-                      <div class="po-row">
-                        <po-icon class="po-sm-2 po-md-3 po-lg-1" p-size="sm" p-icon="bi bi-pin-map"></po-icon>
-                        <div class="po-sm-10 po-md-9 po-lg-11">
-                          <div class="po-font-text-large-bold">{{ option.label }}</div>
-                          <div class="po-font-text-smaller">Filial: {{ option.codFilial }}</div>
+                    <div class='filtros-container' style='margin-left:10px;margin-right: 10px;margin-top: 10px;margin-bottom: 10px;'>
+
+                        <po-combo [ngModel]="codEstabelecimento" 
+                                  (ngModelChange)="codEstabelecimento = $event"
+                          
+                                  (p-change)="onEstabChange($event)" 
+                                  p-clean="true" 
+                                  [p-options]="listaEstabelecimentos"
+                          
+                                  p-label="Estabelecimento" 
+                                  p-icon="bi bi-pin-map" 
+                                  [p-placeholder]="placeHolderEstabelecimento">
+                          <ng-template p-combo-option-template let-option>
+                            <div class="po-row">
+                              <po-icon class="po-sm-2 po-md-3 po-lg-1" p-size="sm" p-icon="bi bi-pin-map"></po-icon>
+                              <div class="po-sm-10 po-md-9 po-lg-11">
+                                <div class="po-font-text-large-bold">{{ option.label }}</div>
+                                <div class="po-font-text-smaller">Filial: {{ option.codFilial }}</div>
+                              </div>
+                            </div>
+                          </ng-template>
+                        </po-combo>
+                        <po-button p-tooltip="Atualizar Dados" p-icon="bi bi-arrow-clockwise"      style="height: 10px;" (click)="onEstabChange(codEstabelecimento)"></po-button>
+                        <po-button p-tooltip="Próximo Passo"   p-icon="bi bi-chevron-double-right" style="height: 10px;" (click)="onProximoStep()"></po-button>
+
+                    </div>
+
+                  </po-widget>
+                  <po-widget class='po-md-12' style='margin-top: 40px;'>
+
+                    <div class='frame-grid-resumo'>
+
+                        <div class="card-container">
+                          <figure class="snip0057 yellow">
+                            <span class="yellow">{{labelContadores[0]}}</span>
+                            <figcaption>
+                              <h2 class="yellow">Total</h2>
+                              <p>
+                                <b style="font-weight: 800; font-size: 16px;">{{labelContadores[1]}}</b> Técnicos <br>
+                                <b style="font-weight: 800; font-size: 16px;">{{labelContadores[2]}}</b> Transferência <br>
+                                <b style="font-weight: 800; font-size: 16px;">{{labelContadores[3]}}</b> Remessa para Conserto
+                                <br>
+                              </p>
+                            </figcaption>
+                            <div class="image"></div>
+                            <div class="position"><button (click)="onOpenModal('Total')">Visualizar</button></div>
+                          </figure>
+
+                          <figure class="snip0057 green">
+                            <span class="green">{{labelContadores[4]}}</span>
+                            <figcaption>
+                              <h2 class="green">Pendentes </h2>
+                              <p>Disponíveis para Consolidar</p>
+                            </figcaption>
+                            <div class="image"></div>
+                            <div class="position"><button (click)="onOpenModal('Pendentes')">Visualizar</button></div>
+                          </figure>
+
+                          <figure class="snip0057 blue">
+                            <span class="blue">{{labelContadores[5]}}</span>
+                            <figcaption>
+                              <h2 class="blue">Consolidado </h2>
+                              <p>Agrupados esperando faturar</p>
+                            </figcaption>
+                            <div class="image"></div>
+                            <div class="position"><button (click)="onOpenModal('Consolidado')">Visualizar</button></div>
+                          </figure>
+
+                          <figure class="snip0057 grey">
+                            <span class="grey">{{labelContadores[6]}}</span>
+                            <figcaption>
+                              <h2 class="grey">Separados </h2>
+                              <p>Pedidos em Separação</p>
+                            </figcaption>
+                            <div class="image"></div>
+                            <div class="position"><button (click)="onOpenModal('Separados')">Sem dados para Exibir</button>
+                            </div>
+                          </figure>
+
+                          <figure class="snip0057 grey">
+                            <span class="grey">{{labelContadores[7]}}</span>
+                            <figcaption>
+                              <h2 class="grey">Expedidos </h2>
+                              <p>Expedidos <br> <i>Integrados com o GFE</i></p>
+                            </figcaption>
+                            <div class="image"></div>
+                            <div class="position"><button (click)="onOpenModal('Expedidos')">Sem dados para Exibir</button>
+                            </div>
+                          </figure>
                         </div>
-                      </div>
-                    </ng-template>
-                  </po-combo>
-                  <po-button p-tooltip="Atualizar Dados" p-icon="bi bi-arrow-clockwise" style="height: 10px;"
-                    (click)="onEstabChange(codEstabelecimento)"></po-button>
-                  <po-button p-tooltip="Próximo Passo" p-icon="bi bi-chevron-double-right" style="height: 10px;"
-                    (click)="onProximoStep()"></po-button>
-                </div>
-              </po-widget>
-              <po-widget class="po-md-12" style="margin-top: 40px;">
 
-                <div class="card-container">
-                  <figure class="snip0057 yellow">
-                    <span class="yellow">{{labelContadores[0]}}</span>
-                    <figcaption>
-                      <h2 class="yellow">Total</h2>
-                      <p>
-                        <b style="font-weight: 800; font-size: 16px;">{{labelContadores[1]}}</b> Técnicos <br>
-                        <b style="font-weight: 800; font-size: 16px;">{{labelContadores[2]}}</b> Transferência <br>
-                        <b style="font-weight: 800; font-size: 16px;">{{labelContadores[3]}}</b> Remessa para Conserto
-                        <br>
-                      </p>
-                    </figcaption>
-                    <div class="image"></div>
-                    <div class="position"><button (click)="onOpenModal('Total')">Visualizar</button></div>
-                  </figure>
-
-                  <figure class="snip0057 green">
-                    <span class="green">{{labelContadores[4]}}</span>
-                    <figcaption>
-                      <h2 class="green">Pendentes </h2>
-                      <p>Disponíveis para Consolidar</p>
-                    </figcaption>
-                    <div class="image"></div>
-                    <div class="position"><button (click)="onOpenModal('Pendentes')">Visualizar</button></div>
-                  </figure>
-
-                  <figure class="snip0057 blue">
-                    <span class="blue">{{labelContadores[5]}}</span>
-                    <figcaption>
-                      <h2 class="blue">Consolidado </h2>
-                      <p>Agrupados esperando faturar</p>
-                    </figcaption>
-                    <div class="image"></div>
-                    <div class="position"><button (click)="onOpenModal('Consolidado')">Visualizar</button></div>
-                  </figure>
-
-                  <figure class="snip0057 grey">
-                    <span class="grey">{{labelContadores[6]}}</span>
-                    <figcaption>
-                      <h2 class="grey">Separados </h2>
-                      <p>Pedidos em Separação</p>
-                    </figcaption>
-                    <div class="image"></div>
-                    <div class="position"><button (click)="onOpenModal('Separados')">Sem dados para Exibir</button>
                     </div>
-                  </figure>
 
-                  <figure class="snip0057 grey">
-                    <span class="grey">{{labelContadores[7]}}</span>
-                    <figcaption>
-                      <h2 class="grey">Expedidos </h2>
-                      <p>Expedidos <br> <i>Integrados com o GFE</i></p>
-                    </figcaption>
-                    <div class="image"></div>
-                    <div class="position"><button (click)="onOpenModal('Expedidos')">Sem dados para Exibir</button>
-                    </div>
-                  </figure>
-                </div>
-              </po-widget>
-            </div>
-          </div>
-          <h5 class="versao">
-            <div style="font-size: 8px;">
-              Atualizado em: {{ultatt}}
-            </div>
-          </h5>
-        </po-widget>
+                  </po-widget>
+
+              </div>
+
+              <h5 class='versao'>
+                  <div style='font-size: 8px;'>
+                    Atualizado em: {{ultatt}}
+                  </div>
+              </h5>
+
+            </po-widget>
+
+        </div>
 
       </div>
-
-    </div>
+    
   </po-step>
   <po-step p-label="Seleção" [p-can-active-next-step]="canActiveNextStep.bind(this)">
 
@@ -153,9 +161,10 @@
                           [ngModel]="codTransp" 
                           (ngModelChange)="codTransp = $event"
                           p-icon="bi bi-person-workspace" 
-                          [p-options]="listaTransp" 
+                          [p-options]="listaTranspFiltrada" 
+                          
                           (p-change)="onTranspChange($event)"
-                  
+                          
                           [p-placeholder]="loadTransp" 
                           p-clean="true"
                           [p-clean]="true">
@@ -189,7 +198,7 @@
                                         { value: 'D8' }]">
                 </po-combo>
 
-                <po-button p-tooltip="Atualizar Dados" p-icon="bi bi-arrow-clockwise"      style="height: 10px;"></po-button>
+                <po-button p-tooltip="Atualizar Dados" p-icon="bi bi-arrow-clockwise"      style="height: 10px;" (p-click)="onEstabChange(codEstabelecimento)"></po-button>
                 <po-button p-tooltip="Próximo Passo"   p-icon="bi bi-chevron-double-right" style="height: 10px;" (click)="onProximoStep()"></po-button>
               </div>
 
@@ -342,34 +351,7 @@
             <po-widget class="po-md-12" style="margin-top: 5px;">
 
               <div class="frame-grid-resumo">
-                <!--old
-                <po-table #ttDadosSelecionados [p-items]="listaSelecionados" 
-                                               [p-columns]="colunasSelecao"
-                  
-                                               [p-selectable]="false" 
-                                               [p-single-select]="false" 
-                                               (p-selected)="changeOptions($event)"
-                  
-                                               (p-unselected)="changeOptions($event)" 
-                                               (p-all-selected)="changeOptions($event)"
-                  
-                                               (p-all-unselected)="changeOptions($event)" 
-                                               [p-striped]="true" 
-                                               p-sort="true" 
-                                               [p-sort]="true"
-                  
-                                               [p-hide-table-search]="false" 
-                                               [p-hide-columns-manager]="true" 
-                                               p-container="true"
-                  
-                                               [p-literals]="customLiterals" 
-                                               [p-height]="alturaGridSelecionados" 
-                                               [p-loading]="loadTela"
-                  
-                                               p-components-size="small">
-                                              
-                </po-table>
-              -->
+                
                 <po-table [p-items]="listaSelecionados"
                           [p-columns]="colunasSelecao"
                           [p-striped]="true" 
@@ -386,7 +368,7 @@
                               [p-columns]="colunasSelecaoItens" 
                               [p-striped]="true"
                               [p-sort]="true" 
-                              [p-height]="300" 
+                              [p-height]="185" 
                               [p-hide-table-search]="false"
                               [p-hide-columns-manager]="true" 
                               [p-actions]="opcoesGridConsolida"
@@ -394,7 +376,9 @@
                     </po-table>
                   </ng-template>
                 </po-table>
+
               </div>
+              
             </po-widget>
 
           </div>
@@ -412,94 +396,154 @@
 
   </po-step>
   <po-step p-label="Pré-Faturamento" [p-can-active-next-step]="canActiveNextStep.bind(this)">
-
-    <div class='hero'>
-
+     <div class='hero'>
       <div class="homepage">
-        <po-widget class="po-md-12" [p-height]="alturaStepper">
-          <div class="combo-com-botao">
-            <po-combo p-label="Consolidação" 
-                      [ngModel]="indConsolidacao" 
-                      (ngModelChange)="nrConsolidacao = $event"
-                        
-                      p-icon="bi bi-person-workspace" 
-                      (p-change)="onFiltrarConsolidacaoChange($event)"
-                        
-                      [p-placeholder]="loadConsolidacao" 
-                      p-clean="true" 
-                      [p-clean]="true"
-                        
-                      [p-options]="listaConsolidacao">
-            </po-combo>
-            <po-button p-tooltip="Atualizar Dados" p-icon="bi bi-arrow-clockwise"    style="height: 10px;" (click)="onEstabChange(codEstabelecimento)"></po-button>
-            <po-button p-tooltip="Faturar"         p-icon="an an-arrows-in-cardinal" style="height: 10px;" (p-click)="onChangeFaturar()" p-label="Faturar" ></po-button>
+
+        <po-widget class="po-md-12" [p-height]="alturaStepperSel">
+          <div class="po-row" style="margin-bottom: 5px;"></div>
+          <div class="po-md-12">
+
+            <po-widget class="po-md-12" style="margin-top: 5px;">
+
+              <div class="filtros-container" style="margin-left:10px;margin-right: 10px;margin-top: 10px;margin-bottom: 10px;">
+
+                <po-combo p-label="Consolidação" 
+                          [ngModel]="indConsolidacao" 
+                          (ngModelChange)="nrConsolidacao = $event"
+                            
+                          p-icon="bi bi-person-workspace" 
+                          (p-change)="onFiltrarConsolidacaoChange($event)"
+                            
+                          [p-placeholder]="loadConsolidacao" 
+                          p-clean="true" 
+                          [p-clean]="true"
+                            
+                          [p-options]="listaConsolidacao">
+                </po-combo>
+                <po-button p-tooltip="Atualizar Dados" p-icon="bi bi-arrow-clockwise"    style="height: 10px;" (click)="onEstabChange(codEstabelecimento)"></po-button>
+                <po-button p-tooltip="Faturar"         p-icon="an an-arrows-in-cardinal" style="height: 10px;" (p-click)="onChangeFaturar()" p-label="Faturar" ></po-button>
+
+              </div>
+
+            </po-widget>
+            <po-widget class="po-md-12" style="margin-top: 5px;">
+
+              <div class="frame-grid-resumo">
+                
+                <po-table [p-items]="listaConsolidaFiltro" 
+                          [p-striped]="true" 
+                          [p-sort]="true" 
+                          [p-loading]="loadTela"
+                          [p-height]="alturaGridConsolidados" 
+                          [p-columns]="colunasConsolida" 
+                          [p-hide-table-search]="true"
+                          [p-hide-columns-manager]="true" 
+                          (p-expanded)="ObterItensConsolida($event)">
+                  <ng-template p-table-row-template let-rowItem let-i="rowIndex" 
+                              [p-table-row-template-show]="mostrarDetalhe">
+                    <po-table [p-columns]="colunasConsolidaItens" 
+                              [p-items]="listaConsolidaItensFiltro" 
+                              [p-striped]="true"
+                              [p-sort]="true" 
+                              [p-height]="215" 
+                              [p-hide-table-search]="false"
+                              [p-hide-columns-manager]="true" 
+                              [p-actions]="opcoesGridConsolida"
+                              p-container="true" >
+                    </po-table>
+                  </ng-template>
+                </po-table>
+
+              </div>
+            </po-widget>
+
           </div>
 
-          <po-table [p-items]="listaConsolidaFiltro" 
-                    [p-striped]="true" 
-                    [p-sort]="true" 
-                    [p-loading]="loadTela"
-                    [p-height]="alturaGridConsolidados" 
-                    [p-columns]="colunasConsolida" 
-                    [p-hide-table-search]="true"
-                    [p-hide-columns-manager]="true" 
-                    (p-expanded)="ObterItensConsolida($event)">
-            <ng-template p-table-row-template let-rowItem let-i="rowIndex" 
-                        [p-table-row-template-show]="mostrarDetalhe">
-              <po-table [p-columns]="colunasConsolidaItens" 
-                        [p-items]="listaConsolidaItensFiltro" 
-                        [p-striped]="true"
-                        [p-sort]="true" 
-                        [p-height]="300" 
-                        [p-hide-table-search]="false"
-                        [p-hide-columns-manager]="true" 
-                        [p-actions]="opcoesGridConsolida"
-                        p-container="true" >
-              </po-table>
-            </ng-template>
-          </po-table>
-          <!--
-          <po-table #ttDadosConsolida
-                                  [p-items]="listaConsolida" 
-                                  [p-columns]="colunasConsolida" 
-                                  [p-selectable]="false"
-                                  [p-single-select]="false" 
-                                  (p-selected)="changeOptions($event)"
-                                  (p-unselected)="changeOptions($event)"
-                                  (p-all-selected)="changeOptions($event)"
-                                  (p-all-unselected)="changeOptions($event)"
-
-                                  [p-striped]="true"
-                                  p-sort="true"
-                                  [p-sort]="true" 
-                                  [p-hide-table-search]="false"
-                                  [p-hide-columns-manager]="true" 
-                                  p-container="true" 
-
-                                  [p-literals]="customLiterals"
-                                  [p-height]="alturaGridSelecionados"
-                                  [p-loading]="loadTela"
-                                  p-components-size="small"
-                                  [p-actions]="opcoesGridConsolida"
-                                >
-          </po-table>
-          
-
-          <div style="text-align: right;">
-            <po-button p-tooltip="Faturar" p-icon="an an-arrows-in-cardinal" p-label="Faturar" (p-click)="onChangeFaturar()"></po-button>
-          </div>
-          -->
           <h5 class="versao">
             <div style="font-size: 8px;">
               Atualizado em: {{ultatt}}
             </div>
           </h5>
         </po-widget>
+
       </div>
+
     </div>
   </po-step>
-  <po-step p-label="Faturado" [p-can-active-next-step]="canActiveNextStep.bind(this)">
+  <po-step p-label="Faturados" [p-can-active-next-step]="canActiveNextStep.bind(this)">
+    <div class='hero'>
+      <div class="homepage">
 
+        <po-widget class="po-md-12" [p-height]="alturaStepperSel">
+          <div class="po-row" style="margin-bottom: 5px;"></div>
+          <div class="po-md-12">
+
+            <po-widget class="po-md-12" style="margin-top: 5px;">
+
+              <div class="filtros-container" style="margin-left:10px;margin-right: 10px;margin-top: 10px;margin-bottom: 10px;">
+
+                <po-combo p-label="Consolidação" 
+                          [ngModel]="indConsolidacao" 
+                          (ngModelChange)="nrConsolidacao = $event"
+                            
+                          p-icon="bi bi-person-workspace" 
+                          (p-change)="onFiltrarConsolidacaoChange($event)"
+                            
+                          [p-placeholder]="loadConsolidacao" 
+                          p-clean="true" 
+                          [p-clean]="true"
+                            
+                          [p-options]="listaConsolidacao">
+                </po-combo>
+                <po-button p-tooltip="Atualizar Dados" p-icon="bi bi-arrow-clockwise"    style="height: 10px;" (click)="onEstabChange(codEstabelecimento)"></po-button>
+                <po-button p-tooltip="Faturar"         p-icon="an an-arrows-in-cardinal" style="height: 10px;" (p-click)="onChangeFaturar()" p-label="Faturar" ></po-button>
+
+              </div>
+
+            </po-widget>
+            <po-widget class="po-md-12" style="margin-top: 5px;">
+
+              <div class="frame-grid-resumo">
+                
+                <po-table [p-items]="listaFaturados" 
+                          [p-striped]="true" 
+                          [p-sort]="true" 
+                          [p-loading]="loadTela"
+                          [p-height]="alturaGridFaturados" 
+                          [p-columns]="colunasFaturados" 
+                          [p-hide-table-search]="true"
+                          [p-hide-columns-manager]="true" 
+                          (p-expanded)="ObterItensConsolida($event)">
+                  <ng-template p-table-row-template let-rowItem let-i="rowIndex" 
+                              [p-table-row-template-show]="mostrarDetalhe">
+                    <po-table [p-columns]="colunasConsolidaItens" 
+                              [p-items]="listaConsolidaItensFiltro" 
+                              [p-striped]="true"
+                              [p-sort]="true" 
+                              [p-height]="215" 
+                              [p-hide-table-search]="false"
+                              [p-hide-columns-manager]="true" 
+                              [p-actions]="opcoesGridFaturados"
+                              p-container="true" >
+                    </po-table>
+                  </ng-template>
+                </po-table>
+
+              </div>
+            </po-widget>
+
+          </div>
+
+          <h5 class="versao">
+            <div style="font-size: 8px;">
+              Atualizado em: {{ultatt}}
+            </div>
+          </h5>
+        </po-widget>
+
+      </div>
+
+    </div> 
   </po-step>
 </po-stepper>
 
@@ -585,7 +629,6 @@
 </po-modal>
 
 <!-- Tela de Informação do Faturamento -->
-<!-- Tela de Informação do Faturamento -->
 <po-modal #ChamaFaturar class="modal-grande" p-title="FATURAMENTO">
 
   <form [formGroup]="form">
@@ -617,8 +660,8 @@
   </form>
 
   <po-modal-footer [p-disabled-align]="false">
-    <po-button p-label="Cancelar" (p-click)="this.ChamaFaturar?.close()"></po-button>
-    <po-button p-label="Confirmar" p-kind="primary"></po-button>
+    <po-button p-label="Cancelar"  (p-click)="this.ChamaFaturar?.close()"></po-button>
+    <po-button p-label="Confirmar" (p-click)="onFaturarEmbarque()"  p-kind="primary" ></po-button>
   </po-modal-footer>
 
 </po-modal>

@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation, inject, signal } from '@angular/core';
-import { PoMenuItem, PoModalAction, PoModalComponent, PoPageAction, PoRadioGroupOption, PoStepperComponent, PoTableAction, PoTableColumn, PoTableComponent, PoNotificationService, PoDialogService, PoNotification, PoButtonComponent, PoLoadingModule, PoStepperModule, PoWidgetModule, PoDividerModule, PoFieldModule, PoIconModule, PoTableModule, PoButtonModule, PoTooltipModule, PoRadioGroupModule, PoModalModule, PoModule, PoAccordionModule, PoTableLiterals, PoStepComponent, PoContainerModule } from '@po-ui/ng-components';
+import { PoMenuItem, PoModalAction, PoModalComponent, PoPageAction, PoRadioGroupOption, PoStepperComponent, PoTableAction, PoTableColumn, PoTableComponent, PoNotificationService, PoDialogService, PoNotification, PoButtonComponent, PoLoadingModule, PoStepperModule, PoWidgetModule, PoDividerModule, PoFieldModule, PoIconModule, PoTableModule, PoButtonModule, PoTooltipModule, PoRadioGroupModule, PoModalModule, PoModule, PoAccordionModule, PoTableLiterals, PoStepComponent, PoContainerModule, PoComboOption } from '@po-ui/ng-components';
 import { TotvsService } from '../../services/totvs-service.service';
-import { catchError, delay, elementAt, finalize, first, interval, Subscription } from 'rxjs';
+import { catchError, delay, elementAt, finalize, first, forkJoin, interval, of, Subscription } from 'rxjs';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ExcelService } from '../../services/excel-service.service';
 import { Usuario } from '../../interfaces/usuario';
@@ -67,11 +67,13 @@ export class HomeComponent {
   alturaGrid:             number = window.innerHeight - 255
   alturaGridSelecionados: number = window.innerHeight - 10
   alturaGridConsolidados: number = window.innerHeight - 100
+  alturaGridFaturados:    number = window.innerHeight - 100
 
   //--- Lista dos Grids
   listaEstabelecimentos!:       any[]
   listaTecnicos!:               any[]
   listaTransp!:                 any[]
+  listaTranspFiltrada!: PoComboOption[] 
   listaConsolidacao!:           any[]
   listaSelecao:                 any[] = []
   listaSelecaoFiltrada:         any[] = []
@@ -82,12 +84,14 @@ export class HomeComponent {
   listaConsolidaFiltro:         any[] = []
   listaConsolidaItens:          any[] = []
   listaConsolidaItensFiltro:    any[] = []
+  listaFaturados:               any[] = []
 
   //--- Colunas dos Grids
   colunasSelecao:        Array<PoTableColumn> = []
   colunasSelecaoItens:   Array<PoTableColumn> = []
   colunasConsolida:      Array<PoTableColumn> = []
   colunasConsolidaItens: Array<PoTableColumn> = []
+  colunasFaturados:      Array<PoTableColumn> = []
 
   //--- Controle de Modal
   lHideSearch: boolean = false
@@ -142,6 +146,9 @@ export class HomeComponent {
   opcoesGridConsolida: Array<any> = [
     { label: '', icon: 'bi bi-trash', action: this.onDeletarRegistroConsolida.bind(this) }
   ]
+  opcoesGridFaturados: Array<any> = [
+
+  ]
   opcoesGrid: Array<any> = [
 
   ]
@@ -160,6 +167,7 @@ export class HomeComponent {
     this.colunasSelecaoItens   = this.srvTotvs.obterColunasSelecaoItens()
     this.colunasConsolida      = this.srvTotvs.obterColunasConsolida()
     this.colunasConsolidaItens = this.srvTotvs.obterColunasConsolidaItems()
+    this.colunasFaturados      = this.srvTotvs.obterColunasFaturado()
 
     //Informacoes iniciais tela
     this.srvTotvs.EmitirParametros({ tituloTela: 'COCKPIT DE PEDIDOS - DASHBOARD', abrirMenu: false })
@@ -187,6 +195,7 @@ export class HomeComponent {
 
       },
       error: (e) => {
+        this.srvNotification.error(e.message)
         return
       }
     })
@@ -201,7 +210,6 @@ export class HomeComponent {
   
   //--- Obter os itens selecionados ao expandir o Grid
   public ObterItensSelecionados(obj: any) {
-    console.log(this.listaSelecionadosItens)
     this.listaSelecionadosItensFiltro = this.listaSelecionadosItens.filter(item => item.nrPedido === obj.nrPedido)
   }
   
@@ -291,7 +299,22 @@ export class HomeComponent {
   }
   //--- Calculo do Frete
 
-  //--- Faturar
+  //--- Chama faturar Embarque
+  public onFaturarEmbarque() {
+    
+    let paramsTela: any = { codEstabel: this.codEstabelecimento, nrConsolidacao: this.nrConsolidacao }
+    this.srvTotvs.FaturarEmbarque(paramsTela).subscribe({ //ponto 1
+      next: (response: any) => {
+      
+        console.log(response)
+      
+      },
+        error: (e) => this.loadTela = false,
+      });
+      
+  }
+  
+  //--- Chama tela de Faturar
   public onChangeFaturar() {
 
     //this.atualizaComboConsolidacao()      
@@ -559,15 +582,16 @@ export class HomeComponent {
     this.loadTela      = true
     this.labelLoadTela = "Carregando Dados Emitente"
 
+    
     this.srvTotvs.ObterEmitentesDoEstabelecimento(obj).subscribe({
       next: (response: any) => {
-        delay(200)
+            delay(200)
 
         this.listaTecnicos = response
         this.loadTecnico = 'Selecione o Emitente'
 
       },
-      error: (e) => this.loadTela = false
+      error: (e) => {this.loadTecnico = 'Erro ao carregar Emitente'  }
     });
 
     //Popular o Combo do Transportadora
@@ -581,9 +605,10 @@ export class HomeComponent {
         delay(200)
 
         this.listaTransp = response
+        this.listaTranspFiltrada = [...this.listaTransp]
         this.loadTransp  = 'Selecione a Transportadora'
       },
-      error: (e) => this.loadTela = false
+      error: (e) => { this.loadTransp  = 'Erro ao carregar Transportadora' }
     });
 
     this.loadPrioridade = 'Prioridade'
@@ -597,6 +622,7 @@ export class HomeComponent {
         this.itemsDetalhe           = []
         this.listaSelecao           = []
         this.listaSelecionadosItens = []
+        this.listaFaturados         = []
 
         if (response && response.pedidos && response.pedidos.length > 0) {
           this.itemsDetalhe          = response.pedidos
@@ -605,7 +631,11 @@ export class HomeComponent {
         }
 
         if (response && response.peditem && response.peditem.length > 0) {
-          this.listaSelecionadosItens          = response.peditem
+          this.listaSelecionadosItens          = response.peditem          
+        }
+
+        if (response && response.faturados && response.faturados.length > 0) {
+          this.listaFaturados = response.faturados
         }
 
         if (response && response.consolidar && response.consolidar.length > 0) { //ponto 2
@@ -647,7 +677,7 @@ export class HomeComponent {
         //zera a lista selecionada se não tiver mais dados
         if (this.listaSelecaoFiltrada.length === 0){
           this.listaSelecionados            = []
-          this.listaSelecionadosItens       = []
+          //this.listaSelecionadosItens       = []
           this.listaSelecionadosItensFiltro = []
         }
         
@@ -660,34 +690,37 @@ export class HomeComponent {
         this.labelContadores[5] = response.items[0].totConsolidados
         this.labelContadores[6] = "N/A"
         this.labelContadores[7] = "N/A"
+
+        //Limpa a lista selecionada
+        this.listaSelecionados            = []
+        //this.listaSelecionadosItens       = []
+        this.listaSelecionadosItensFiltro = []
+        //Atualizar o Combo de consolidação pendente
+        this.atualizaComboConsolidacao()
+
         this.loadTela           = false
 
       },
-      error: (e) => {
-        this.loadTela = false
-      }
+      error: (e) => { this.loadTela = false }
 
-    })
-
-    //Limpa a lista selecionada
-    this.listaSelecionados            = []
-    this.listaSelecionadosItens       = []
-    this.listaSelecionadosItensFiltro = []
-    //Atualizar o Combo de consolidação pendente
-    this.atualizaComboConsolidacao()
+    })    
 
     //Atualiza com a dataHora de Atualização da Tela
-    this.ultatt = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' })
-
+    this.ultatt = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' })   
+  
   }
+
+  
 
   //--- Stepper
   public onChangeStep(obj: any) {
 
     //Informacoes iniciais tela
-    this.srvTotvs.EmitirParametros({ tituloTela: 'COCKPIT DE PEDIDOS - ' + obj.label + ' Estabelecimento', abrirMenu: false })
+    this.srvTotvs.EmitirParametros({ tituloTela: 'COCKPIT DE PEDIDOS - ' + obj.label + ' Estabelecimento [' + this.codEstabelecimento + ']', abrirMenu: false })
 
-    if ((this.StepAtual === "Dashboard" || this.StepAtual === "Seleção") && (obj.label === "Resumo" || obj.label === "Pré-Faturamento" || obj.label === "Faturado")){
+/*
+
+    if ((this.StepAtual === "Dashboard" || this.StepAtual === "Seleção") && (obj.label === "Resumo" || obj.label === "Pré-Faturamento" || obj.label === "Faturados")){
 
       if ((!this.listaSelecionados || this.listaSelecionados.length === 0) && (!this.listaConsolida || this.listaConsolida.length === 0)){
         this.srvNotification.error('Nenhum pedido foi selecionado para Consolidação')
@@ -697,7 +730,7 @@ export class HomeComponent {
 
     }
 
-    if ((this.StepAtual === "Dashboard" || this.StepAtual === "Seleção" || this.StepAtual === "Resumo") && (obj.label === "Pré-Faturamento" || obj.label === "Faturado")){
+    if ((this.StepAtual === "Dashboard" || this.StepAtual === "Seleção" || this.StepAtual === "Resumo") && (obj.label === "Pré-Faturamento" || obj.label === "Faturados")){
 
       if ((!this.listaConsolida || this.listaConsolida.length === 0)){
         this.srvNotification.error('Efetivar a Consolidação para Avançar');
@@ -705,7 +738,7 @@ export class HomeComponent {
         return
       }
 
-    }
+    }*/
     this.StepAtual = obj.label
 
   }
@@ -734,7 +767,7 @@ export class HomeComponent {
       this.atualizaComboConsolidacao()
     }
 
-     if (passo.label === 'Pré-Faturamento') {
+    if (passo.label === 'Pré-Faturamento') {
       this.atualizaComboConsolidacao()
     }
 

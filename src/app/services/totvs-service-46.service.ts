@@ -15,7 +15,7 @@ const headersTotvs = new HttpHeaders(environment.totvs_header)
 
 export class TotvsService46 {
   private reg!:any;
-  _url = environment.totvs46_url;
+  _url46 = '' //environment.totvs46_url;
 
   constructor(private http: HttpClient ) { }
 
@@ -25,9 +25,9 @@ export class TotvsService46 {
         return mensagem.message
       return '';
   } */
-
+/*
   //---------- Colunas Enc Series Pendentes
-  obterColunasSeriesPendentes() :Array<PoTableColumn> {
+obterColunasSeriesPendentes() :Array<PoTableColumn> {
     return [
       { property: 'numos', label: "NumOS" },
       { property: 'chamado', label: "Chamado" },
@@ -62,7 +62,6 @@ obterColunasItems(): Array<PoTableColumn> {
 obterColunasOrdens(): Array<PoTableColumn> {
   return [
     {property:'opcoes', label: "Flag", type:'cellTemplate'},
-    /* { property: 'flag', label: " ", color:'color-07', type: 'columnTemplate'}, */
     { property: 'NumOS', label: "NumOs" },
     { property: 'situacao', label: "Sit" },
     { property: 'Chamado', label: "Chamado"},
@@ -79,7 +78,6 @@ obterColunasOrdens2(): Array<PoTableColumn> {
     { property: 'Serie', label: "Série", color:'color-03' },
     { property: 'opcoes', label: "Flag", type:'cellTemplate', width:'60px'},
     { property: 'tt-seqIT', label: "Seq" }, 
-   /*  { property: 'sequencia', label: "Seq" }, */
     { property: 'it-codigo', label: "Item", type:'cellTemplate' },
     { property: 'Serie-Nf-Saida', label: "Série"},
     { property: 'nf-saida', label: "Nota Saída" },
@@ -106,11 +104,12 @@ obterColunasArquivos(): Array<PoTableColumn> {
     {property: 'numPedExec', label: "PedExec"},
   ];
 }
-
+*/
+/*não usada
   //---------------------- COMBOBOX ESTABELECIMENTOS
   //Retorno transformado no formato {label: xxx, value: yyyy}
   public ObterEstabelecimentos(params?: any){
-    return this.http.get<any>(`${this._url}/ObterEstab`, {params: params, headers:headersTotvs})
+    return this.http.get<any>(`${this._url46}/ObterEstab`, {params: params, headers:headersTotvs})
                  .pipe(
                   //tap(data => {console.log("Retorno API TOTVS => ", data)}),
                   map(item => { return item.items.map((item:any) =>  { return { label:item.codEstab + ' ' + item.nome, value: item.codEstab, codFilial: item.codFilial } }) }),
@@ -119,7 +118,7 @@ obterColunasArquivos(): Array<PoTableColumn> {
   }
 
   public ObterEmitentesDoEstabelecimento(id:string){
-    return this.http.get<any>(`${this._url}/ObterTecEstab?codEstabel=${id}`, {headers:headersTotvs})
+    return this.http.get<any>(`${this._url46}/ObterTecEstab?codEstabel=${id}`, {headers:headersTotvs})
                  .pipe(
                   map(item => { return item.items.map((item:any) =>  { return { label: item.codTec + ' ' + item.nomeAbrev, value: item.codTec  } }) }),
                   ///tap(data => {console.log("Data Transformada pelo Map =>", data)}),
@@ -141,154 +140,154 @@ obterColunasArquivos(): Array<PoTableColumn> {
 
   //---------------------- 
   public CriarOrdem(params?: any){
-    return this.http.post(`${this._url}/CriarOrdem`, params, {headers:headersTotvs})
+    return this.http.post(`${this._url46}/CriarOrdem`, params, {headers:headersTotvs})
                 .pipe(take(1));
   }
   
   //---------------------- 
   public AlterarOrdem(params?: any){
-     return this.http.post(`${this._url}/AlterarOrdem`, params, {headers:headersTotvs})
+     return this.http.post(`${this._url46}/AlterarOrdem`, params, {headers:headersTotvs})
                 .pipe(take(1));
   }
 
   public ExcluirOrdem(params?: any){
-    return this.http.get(`${this._url}/ExcluirOrdem`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/ExcluirOrdem`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
 
   //---------------------- 
   public ObterDados(params?: any){
-    return this.http.get(`${this._url}/ObterDados`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/ObterDados`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   //---------------------- 
   public ObterDados2(params?: any){
-    return this.http.get(`${this._url}/ObterDados2`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/ObterDados2`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   //---------------------- 
   public ObterDadosMobile(params?: any){
-    return this.http.get(`${this._url}/ObterDadosMobile`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/ObterDadosMobile`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   //---------------------- 
   public ObterContadores(params?: any){
-    return this.http.get(`${this._url}/ObterContadores`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/ObterContadores`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
   
   //---------------------- 
   public ImprimirOS(params?: any){
-    return this.http.get(`${this._url}/ImprimirOS`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/ImprimirOS`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
   
 
   public ObterItens(params?: any){
-    return this.http.get(`${this._url}/ObterItens`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/ObterItens`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public Marcar(params?: any){
-    return this.http.get(`${this._url}/Marcar`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/Marcar`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public Desmarcar(params?: any){
-    return this.http.get(`${this._url}/Desmarcar`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/Desmarcar`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public MarcarMoto(params?: any){
-    return this.http.get(`${this._url}/MarcarMoto`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/MarcarMoto`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public DesmarcarMoto(params?: any){
-    return this.http.get(`${this._url}/DesmarcarMoto`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/DesmarcarMoto`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public LeaveItemOS(params?: any){
-    return this.http.post(`${this._url}/LeaveItemOS`, params, {headers:headersTotvs})
+    return this.http.post(`${this._url46}/LeaveItemOS`, params, {headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public LeaveNFSOS(params?: any){
-    return this.http.post(`${this._url}/LeaveNFSOS`, params, {headers:headersTotvs})
+    return this.http.post(`${this._url46}/LeaveNFSOS`, params, {headers:headersTotvs})
                    .pipe(take(1));
   }
   public EliminarEnc(params?: any){
-    return this.http.get(`${this._url}/EliminarEnc`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/EliminarEnc`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public GravarItemOS(params?: any){
-    return this.http.post(`${this._url}/GravarItemOS`, params, {headers:headersTotvs})
+    return this.http.post(`${this._url46}/GravarItemOS`, params, {headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public EliminarItemOS(params?: any){
-    return this.http.post(`${this._url}/EliminarItemOS`, params, {headers:headersTotvs})
+    return this.http.post(`${this._url46}/EliminarItemOS`, params, {headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public ObterCadastro(params?: any){
-    return this.http.get(`${this._url}/ObterCadastro`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/ObterCadastro`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public ObterArquivo(params?: any){
-    return this.http.get(`${this._url}/ObterArquivo`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/ObterArquivo`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public GravarEnc(params?: any){
-    return this.http.post(`${this._url}/GravarEnc`, params, {headers:headersTotvs})
+    return this.http.post(`${this._url46}/GravarEnc`, params, {headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public GravarNumSerieItem(params?: any){
-    return this.http.get(`${this._url}/GravarNumSerieItem`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/GravarNumSerieItem`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public SeriesPendentes(params?: any){
-    return this.http.get(`${this._url}/SeriesPendentes`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/SeriesPendentes`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public ValidarSerie(params?: any){
-    return this.http.get(`${this._url}/ValidarSerie`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/ValidarSerie`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public GravarListaNumSerieItem(params?: any){
-    return this.http.post(`${this._url}/GravarListaNumSerieItem`, params, {headers:headersTotvs})
+    return this.http.post(`${this._url46}/GravarListaNumSerieItem`, params, {headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public EliminarArquivo(params?: any){
-    return this.http.get(`${this._url}/EliminarArquivo`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/EliminarArquivo`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public piObterSituacaoRPW(params?: any){
-    return this.http.get(`${this._url}/piObterSituacaoRPW`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/piObterSituacaoRPW`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
   public DestravarProcesso(params?: any){
-    return this.http.get(`${this._url}/DestravarProcesso`, {params:params, headers:headersTotvs})
+    return this.http.get(`${this._url46}/DestravarProcesso`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
   }
 
 
-
+*/
 
 
    //Ordenacao campos num array

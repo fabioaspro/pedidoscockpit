@@ -1,0 +1,48 @@
+<div class="hero">
+  <div class="homepage">
+
+    <po-widget class="po-md-12" [p-height]="alturaStepperSel">
+      <div class='po-row' style='margin-bottom: 5px;'></div>
+
+      <!-- Descritivo -->
+      <div class="po-md-8" style="margin: 10px;">
+        <po-info p-label="Objetivo" p-value="Envio de dados das tabelas pr-consolida e pr-consolida-ped para  histórico."></po-info>
+      </div>
+
+      <!-- Botões de ação -->
+      <po-widget class="po-md-12" style="margin-top: 5px;">
+        <div class="filtros-container" style="margin: 10px;">
+
+          <div class="po-row">
+            <div class="po-col po-md-6">
+              <po-datepicker name="periodoInicial" [(ngModel)]="periodoInicial" p-label="Período Inicial"></po-datepicker>
+              <po-datepicker name="periodoFinal"   [(ngModel)]="periodoInicial" p-label="Período Final"></po-datepicker>
+
+              <po-button p-icon="po-icon-calendar" (p-click)="telaSelecao?.open()" p-tooltip="Seleção de Dados" p-label="Selecionar Dados"></po-button>
+            </div>
+          </div>
+        </div>
+      </po-widget>
+
+      <!-- Progresso e botão de envio -->
+      <po-widget class="po-md-12" style="margin-top: 5px;">
+        
+        <div class="frame-grid-resumo" style="margin: 10px;">
+
+          <po-progress class="po-md-12" p-text="Progresso do Envio" [p-value]="progressValue"
+            [p-show-percentage]="true">
+          </po-progress>
+
+          <div class="po-row" style="margin-top: 10px;">
+            <po-button p-label="Atualizar Progresso" [p-disabled]="buttonDisabled" (p-click)="ngOnAttEnvHist()"></po-button>
+          </div>
+
+        </div>
+
+      </po-widget>
+
+    </po-widget>
+
+  </div>
+
+</div>
