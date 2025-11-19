@@ -39,6 +39,9 @@ import { Router, RouterLink } from '@angular/router';
 })
 export class HomeComponent {
 
+  //--- Modal de Peso
+  selectedItem: any = {}
+
   //--- Loadings
   loadTela:  boolean = false
   loadExcel: boolean = false
@@ -47,6 +50,7 @@ export class HomeComponent {
   loadTransp:       string = ''
   loadPrioridade:   string = ''
   loadConsolidacao: string = ''
+  loadFaturados:    string = ''
 
   //--- Controle de Steps
   StepAtual:        any
@@ -73,25 +77,32 @@ export class HomeComponent {
   listaEstabelecimentos!:       any[]
   listaTecnicos!:               any[]
   listaTransp!:                 any[]
-  listaTranspFiltrada!: PoComboOption[] 
-  listaConsolidacao!:           any[]
+  listaTranspFiltrada!:         PoComboOption[] 
   listaSelecao:                 any[] = []
   listaSelecaoFiltrada:         any[] = []
   listaSelecionados:            any[] = []
   listaSelecionadosItens:       any[] = []
   listaSelecionadosItensFiltro: any[] = []
+  listaSelecionadosItensPeso:   any[] = []
+  listaConsolidacao!:           any[]
   listaConsolida:               any[] = []
   listaConsolidaFiltro:         any[] = []
   listaConsolidaItens:          any[] = []
   listaConsolidaItensFiltro:    any[] = []
+  listaFaturamento!:            any[]
   listaFaturados:               any[] = []
+  listaFaturadosFiltro:         any[] = []
+  listaFaturadosItens:          any[] = []
+  listaFaturadosItensFiltro:    any[] = []
+  selectedRows:                 any[] = []
 
   //--- Colunas dos Grids
-  colunasSelecao:        Array<PoTableColumn> = []
-  colunasSelecaoItens:   Array<PoTableColumn> = []
-  colunasConsolida:      Array<PoTableColumn> = []
-  colunasConsolidaItens: Array<PoTableColumn> = []
-  colunasFaturados:      Array<PoTableColumn> = []
+  colunasSelecao:         Array<PoTableColumn> = []
+  colunasSelecaoItens:    Array<PoTableColumn> = []
+  colunasSelecaoItensPeso:Array<PoTableColumn> = []
+  colunasConsolida:       Array<PoTableColumn> = []
+  colunasConsolidaItens:  Array<PoTableColumn> = []
+  colunasFaturados:       Array<PoTableColumn> = []
 
   //--- Controle de Modal
   lHideSearch: boolean = false
@@ -102,22 +113,33 @@ export class HomeComponent {
   itemsDetalhe!:  any[]
   itemsTotal!:    any[]
   
-  //--- Variaveis Combobox
+  //--- Variaveis e Combobox
   codEstabelecimento:          string = ''
   codTecnico:                  string = ''
   codTransp:                   string = ''
   nrConsolidacao:              string = ''
   indPrioridade:               string = ''
   indConsolidacao:             string = ''
+  indFaturados:                string = ''
   placeHolderEstabelecimento!: string
+  serieSaida:                  any    = '999'
+  codTranspnf:                 string = ''
+  paramsEstab:                 any    = []
+  valConsolidado:              string = ''
+  dthrAlt:                     Date   = new Date()
+  currentStep                  = '' // etapa atual
+  previousStep                 = ''
 
-  //--- Referencias 
+  //--- Referencias
   @ViewChild('detailsModalTot',  { static: true }) detailsModalTot:  PoModalComponent | undefined
   @ViewChild('detailsModalPend', { static: true }) detailsModalPend: PoModalComponent | undefined
   @ViewChild('detailsModalCon',  { static: true }) detailsModalCon:  PoModalComponent | undefined
   @ViewChild('ChamaFaturar',     { static: true }) ChamaFaturar:     PoModalComponent | undefined
+  @ViewChild('ChamaPesoItem',    { static: true }) ChamaPesoItem:    PoModalComponent | undefined
+  @ViewChild('alteraPeso',       { static: true }) alteraPeso:       PoModalComponent | undefined
   @ViewChild('ttDadosConc')                        DadosSelecao!:    PoTableComponent
   @ViewChild('stepper')                            stepper!:         PoStepperComponent
+  @ViewChild('pesoLiqInput')                       pesoLiqInput!:    ElementRef;
 
   //--- Serviços injetados
   private srvTotvs        = inject(TotvsService)
@@ -128,11 +150,12 @@ export class HomeComponent {
 
   //--- Formulario
   public form = this.formConsulta.group({
+    serieSaida:  ['', Validators.required],
     pesoLiquido: ['', Validators.required],
     pesoBruto:   ['', Validators.required],
     volume:      ['', Validators.required],
     modal:       ['', Validators.required],
-    codTransp:   ['', Validators.required],
+    codTranspnf: ['', Validators.required],
     observacao:  ['', Validators.required],
   });
 
@@ -146,8 +169,14 @@ export class HomeComponent {
   opcoesGridConsolida: Array<any> = [
     { label: '', icon: 'bi bi-trash', action: this.onDeletarRegistroConsolida.bind(this) }
   ]
+  opcoesGridPeso: Array<any> = [
+    { label: '', icon: 'bi bi-eraser', action: this.onEditItem.bind(this) }
+  ]
   opcoesGridFaturados: Array<any> = [
 
+  ]
+  opcoesGridResumo: Array<any> = [
+    { label: '', tooltip: "Desmarcar", icon: 'bi bi-x-square', action: this.onDesmarcarRegistroResumo.bind(this) }
   ]
   opcoesGrid: Array<any> = [
 
@@ -163,11 +192,12 @@ export class HomeComponent {
     this.totSelecionado[4] = "Calcular"
 
     //Obter Colunas do Grid
-    this.colunasSelecao        = this.srvTotvs.obterColunasSelecao()
-    this.colunasSelecaoItens   = this.srvTotvs.obterColunasSelecaoItens()
-    this.colunasConsolida      = this.srvTotvs.obterColunasConsolida()
-    this.colunasConsolidaItens = this.srvTotvs.obterColunasConsolidaItems()
-    this.colunasFaturados      = this.srvTotvs.obterColunasFaturado()
+    this.colunasSelecao          = this.srvTotvs.obterColunasSelecao()
+    this.colunasSelecaoItens     = this.srvTotvs.obterColunasSelecaoItens()
+    this.colunasSelecaoItensPeso = this.srvTotvs.obterColunasSelecaoItensPeso()
+    this.colunasConsolida        = this.srvTotvs.obterColunasConsolida()
+    this.colunasConsolidaItens   = this.srvTotvs.obterColunasConsolidaItems()
+    this.colunasFaturados        = this.srvTotvs.obterColunasFaturado()
 
     //Informacoes iniciais tela
     this.srvTotvs.EmitirParametros({ tituloTela: 'COCKPIT DE PEDIDOS - DASHBOARD', abrirMenu: false })
@@ -186,6 +216,7 @@ export class HomeComponent {
         this.loadTransp       = 'Selecione um estabelecimento primeiro'
         this.loadPrioridade   = 'Selecione um estabelecimento primeiro'
         this.loadConsolidacao = 'Selecione uma Consolidação'
+        this.loadFaturados    = 'Selecione um Faturado'
 
         //Zera a lista selecionada
         if (this.listaSelecaoFiltrada.length === 0){
@@ -203,6 +234,38 @@ export class HomeComponent {
   }
   //-- ngOnInit inicial da tela 
 
+  //--- Reprocessar Faturamento
+  onReprocessarFat(obj:any) {
+  
+    this.srvDialog.confirm({
+      title: 'REPROCESSAR FATURAMENTO',
+      message:
+        "<div class='dlg'><i class='bi bi-question-circle po-font-subtitle'></i><span class='po-font-text-large'> CONFIRMA REPROCESSAMENTO ?</span></div><p>O reprocessamento só deve ser usado com a certeza da parada do processamento normal.</p>",
+        
+
+      confirm: () => {
+        this.loadTela = true;
+        let params: any = { paramsTela: {codEstab: obj['cod-estabel'], codEmitente: obj['cod-emitente'], nrProcess: obj['nr-process']},}
+
+        this.nrConsolidacao = obj.nrConsolidacao
+        this.onChangeFaturar()
+        /*
+        this.srvTotvs.ReprocessarCalculo(params).subscribe({
+          next: (response: any) => {
+            this.srvNotification.success('Execução do cálculo realizada com sucesso ! Processo RPW: ' + response.rpw)
+            this.onListar()
+            this.loadTela = false;
+          },
+          error: (e) => {
+          // this.srvNotification.error('Ocorreu um erro na requisição')
+            this.loadTela = false;
+          },
+        })
+        */
+      },
+      cancel: () => this.srvNotification.error('Cancelada pelo usuário'),
+    });
+  }
   //--- Usado para obter dados ao expandir os detalhes do Grid
   public mostrarDetalhe(row: any, index: number) {
     return true;
@@ -210,14 +273,57 @@ export class HomeComponent {
   
   //--- Obter os itens selecionados ao expandir o Grid
   public ObterItensSelecionados(obj: any) {
-    this.listaSelecionadosItensFiltro = this.listaSelecionadosItens.filter(item => item.nrPedido === obj.nrPedido)
+    this.listaSelecionadosItensFiltro = this.listaSelecionadosItens.filter(item => item.nrPedido === obj.nrPedido)    
   }
   
   //--- Obter os Itens selecionados ao expandir o Grid
   public ObterItensConsolida(obj: any) {
     this.listaConsolidaItensFiltro = this.listaConsolidaItens.filter(item => item.nrConsolidacao === obj.nrConsolidacao)
   }
-  //--- Usado para obter dados ao expandir os detalhes do Grid
+  
+  //--- Obter os Itens selecionados ao expandir o Grid
+  public ObterItensFaturados(obj: any) {
+    this.listaFaturadosItensFiltro = this.listaFaturadosItens.filter(item => item.nrConsolidacao === obj.nrConsolidacao)
+  }
+
+  //--- Desmarca registro do Grid de Resumo
+  public onDesmarcarRegistroResumo(obj: any){
+
+    this.srvDialog.confirm({
+      title: 'ELIMINAR PEDIDO [' + obj.nrPedido + '] PARA CONSOLIDAÇÃO',
+      message: "<div class='dlg'><i class='bi bi-question-circle po-font-subtitle'></i><span class='po-font-text-large'> DESEJA DESMARCAR O PEDIDO PARA EFETUAR CONSOLIDAÇÃO ?</span></div>",
+      literals: { "cancel": "Não", "confirm": "Sim" },
+      confirm: () => {
+
+        //Lista da tela de Resumo
+        this.listaSelecionados = this.listaSelecionados.filter(p => p.nrPedido !== obj.nrPedido) 
+
+        //Desmarca o selecionado no grid de Seleção
+        const item = this.listaSelecaoFiltrada.find(i => i.nrPedido === obj.nrPedido);
+        if (item) {
+          item['$selected'] = false;
+        }
+
+        const index = this.selectedRows.findIndex(item => item.nrPedido === obj.nrPedido)
+        if (index >= 0) {
+          // Já está selecionado → desmarca
+          this.selectedRows.splice(index, 1)
+          
+        }        
+        else {
+          // Adiciona novamente na lista caso excluir
+          //this.listaSelecaoFiltrada.push(obj)
+        }
+
+        // Força atualização do array para o Angular detectar mudança
+        this.listaSelecaoFiltrada = [...this.listaSelecaoFiltrada]        
+
+      },
+      cancel: () => { }
+    })
+
+  }
+
 
   //--- Deletar registro do Grid de Consolidação
   public onDeletarRegistroConsolida(obj: any) {
@@ -247,6 +353,7 @@ export class HomeComponent {
 
         //Limpa as listas
         this.listaConsolidacao    = []
+        this.listaFaturamento     = []
         this.listaConsolidaFiltro = []
 
         //Recarrega os Dados do Estabelecimento selecionado
@@ -299,18 +406,37 @@ export class HomeComponent {
   }
   //--- Calculo do Frete
 
-  //--- Chama faturar Embarque
+  //--- Chama Ffaturar Embarque
   public onFaturarEmbarque() {
     
-    let paramsTela: any = { codEstabel: this.codEstabelecimento, nrConsolidacao: this.nrConsolidacao }
+    this.ChamaFaturar?.close()
+    this.loadTela      = true
+    this.labelLoadTela = "Faturando Embarque"
+
+    let paramsTela: any = { codEstabel: this.codEstabelecimento, nrConsolidacao: this.nrConsolidacao, params: this.form.value}
     this.srvTotvs.FaturarEmbarque(paramsTela).subscribe({ //ponto 1
       next: (response: any) => {
+        //this.loadTela = false
+        this.srvNotification.success("Pedido e Execução [" + response.pedExec + "] Gerado para a Consolidação [" + this.nrConsolidacao + "]")
       
-        console.log(response)
-      
+        console.log(response.faturados.nrNotaFis)
       },
-        error: (e) => this.loadTela = false,
-      });
+      error: (e) => this.loadTela = false,
+      complete: () => {
+          this.loadTela = false
+          this.ChamaFaturar?.close()
+          
+          //Carrega Totais
+          this.onEstabChange(this.codEstabelecimento)
+          
+          //this.srvNotification.success("Consolidação [" + this.nrConsolidacao + "] Faturada com sucesso ! NF[] Geradas")
+
+          //Próximo passo
+          this.stepper.next()
+
+        }
+
+      })
       
   }
   
@@ -319,12 +445,13 @@ export class HomeComponent {
 
     //this.atualizaComboConsolidacao()      
     if ((this.nrConsolidacao === '' || this.nrConsolidacao === undefined)) {
-      this.srvNotification.error('Consolidação não foi selecionada');
+      this.srvNotification.error('Consolidação não foi selecionada')
+      this.loadTela = false
       return
     }
 
     this.srvDialog.confirm({
-      title: 'Faturar Consolidação',
+      title: 'Faturar Consolidação [' + this.nrConsolidacao + ']?',
       message: 'Deseja realmente Faturar a Consolidação [' + this.nrConsolidacao + ']?',
 
       confirm: () => {
@@ -333,42 +460,31 @@ export class HomeComponent {
 
         //Seta modal inicial
         this.form.controls['modal'].setValue("terrestre")
+        this.form.controls['codTranspnf'].setValue("435")
 
-        //Chama tela de Faturamento
-        this.ChamaFaturar?.open()
-        /*
-        let paramsTela: any = { codEstabel: this.codEstabelecimento, items: [...this.listaSelecionados] }
-
-        this.srvTotvs.ObterConsolidar(paramsTela).subscribe({ //ponto 1
-          next: (response: any) => {
-
-            delay(200)
-            
-            if (response && response.items && response.items.length > 0) {
-              this.listaConsolidaItens = response.items
-              this.listaConsolida      = Array.from(new Map(this.listaConsolidaItens.map(item => [item.nrConsolidacao, item])).values())
-
-              //Ordena a Lista
-              this.listaConsolidaItens = (this.listaConsolidaItens as any[]).sort(this.ordenarCampos(['nrConsolidacao']))
-              this.listaConsolida      = (this.listaConsolida as any[]).sort(this.ordenarCampos(['nrConsolidacao']))
-          
-              this.listaConsolidaFiltro= this.listaConsolida
-
-              this.listaSelecionados = []
-              
+        //Setar Valores Padrao
+        this.srvTotvs.ObterParamsDoEstabelecimento(this.codEstabelecimento).subscribe({
+          next: (response:any) => {
+            if(response === null) {
+              this.srvNotification.error("Cadastro para filial não encontrado ! Verifique os Parâmetros da Filial" )
+              this.stepper?.first()
             }
-            else this.listaConsolida = []
+            
+              this.paramsEstab = response !== null ? response.items[0]: null
+              if (this.paramsEstab !== null){
+                this.serieSaida   = this.paramsEstab.serieSai
+              }
 
-            this.onEstabChange(this.codEstabelecimento)
-
-            delay(200)
-                
-            this.stepper.next()
+              //Chama tela de Parâmetros do Faturamento
+              this.ChamaFaturar?.open()
 
           },
-          error: (e) => this.loadTela = false,
-        });*/
-        this.loadTela = false
+          error: (e) => this.srvNotification.error("Ocorreu um erro na requisição " ),
+          complete: () => {
+            this.loadTela = false
+          } 
+        })
+        
       },
       cancel: () => { }
 
@@ -388,17 +504,20 @@ export class HomeComponent {
     this.stepper.next()
 
     //Atualiza combo de consolidação concatenando os dados
-    this.atualizaComboConsolidacao()
+    this.atualizaComboConsolidacao(this.listaConsolidaFiltro)
+    this.atualizaComboConsolidacao(this.listaFaturadosFiltro)
   }
   //--- Mudar de Step
 
   //--- Chame este método sempre que o grid for recarregado/atualizado.
-  public atualizaComboConsolidacao() {
+  public atualizaComboConsolidacao(selecionados: any[]) {
 
     // Mapa para garantir unicidade e contagem
-    const counts = this.listaConsolida.reduce<Map<string, number>>((acc, item) => {
-      const nrRaw = item.nrConsolidacao?.toString().trim();
+    const counts = selecionados.reduce<Map<string, number>>((acc, item) => {
+      const nrRaw = item.nrConsolidacao?.toString().trim()
       const nr = Number(nrRaw);
+
+      this.valConsolidado = item.lConsolidado?.toString().trim()
 
       if (isNaN(nr)) return acc;
 
@@ -418,20 +537,147 @@ export class HomeComponent {
     });
 
     // Monta as opções do combo
-    this.listaConsolidacao = [
-      { label: 'Todos', value: null }, ...unicosOrdenados.map(label => {
-        const nr = Number(label.split(' - ')[0]);
-        return { label, value: nr };
-      })
-    ]
-
+    if (this.valConsolidado === "Não") {
+      this.listaConsolidacao = [
+        { label: 'Todos', value: null }, ...unicosOrdenados.map(label => {
+          const nr = Number(label.split(' - ')[0]);
+          return { label, value: nr };
+        })
+      ]
+    }
+    else{
+      this.listaFaturamento = [
+        { label: 'Todos', value: null }, ...unicosOrdenados.map(label => {
+          const nr = Number(label.split(' - ')[0]);
+          return { label, value: nr };
+        })
+      ]  
+    }
   }
   //--- Chame este método sempre que o grid for recarregado/atualizado.
+
+  //--- Abre modal para editar
+  onEditItem(item: any) {
+    this.selectedItem = { ...item }; // Clona para não alterar direto
+    this.alteraPeso?.open()
+    
+    setTimeout(() => {
+      this.pesoLiqInput.nativeElement.focus();
+      this.pesoLiqInput.nativeElement.select(); // Seleciona todo o texto
+    }, 300)
+
+  }
+
+  //--- Salva alteração do peso
+  saveItem(modal: any) {
+
+    this.srvDialog.confirm({
+      title: 'Efetivar Alteração de Peso',
+      message: 'Deseja realmente Efetivar a Alteração de Peso do Item ?',
+    
+      confirm: () => {
+        // Atualiza item na lista
+        const index = this.listaSelecionadosItensPeso.findIndex(i => i.itCodigo === this.selectedItem.itCodigo);
+        
+        if (index > -1) {
+          // Formata para 5 casas decimais e vírgula
+          this.listaSelecionadosItensPeso[index].pesoLiq = parseFloat(this.selectedItem.pesoLiq.toString().replace(',', '.')).toFixed(5).replace('.', ',');
+          this.listaSelecionadosItensPeso[index].pesoBru = parseFloat(this.selectedItem.pesoBru.toString().replace(',', '.')).toFixed(5).replace('.', ',');
+        }
+
+        this.loadTela      = true
+        this.labelLoadTela = "Alterando Peso"
+
+        let paramsTela: any = { items: [...this.listaSelecionadosItensPeso] }
+        this.srvTotvs.ObterPesoItem(paramsTela).subscribe({ //ponto 1
+          next: (response: any) => {
+            
+          },
+          error: (e) => {
+            this.loadTela = false
+          },
+          complete:() => {
+            this.loadTela = false
+          }
+        })
+        this.alteraPeso?.close()  
+      }, 
+      cancel: () => { }
+    
+    })
+    
+  }
+
+  //--- Peso do Item
+  onPesoItem(){
+
+    if (this.listaSelecionados.length === 0) { 
+      this.srvNotification.success("Não existe item com peso zerado!")  
+      return 
+    }
+    
+    // Pega os números dos pedidos selecionado
+    const pedidosSelecionados = this.listaSelecionados.map(p => p.nrPedido)
+
+    // Filtra apenas os itens dos pedidos selecionados
+    const todosItens = this.listaSelecionadosItens.filter(item => pedidosSelecionados.includes(item.nrPedido))
+    
+    // Remove duplicados pelo código do item (itCodigo)
+    const itensUnicos = todosItens.filter((item, index, self) => index === self.findIndex(i => i.itCodigo === item.itCodigo))
+
+    // Agora aplica o filtro para pesoLiq e pesoBru = 0
+    this.listaSelecionadosItensPeso = itensUnicos.filter(item => {
+      const pesoLiq = parseFloat(item.pesoLiq.replace(",", "."));
+      const pesoBru = parseFloat(item.pesoBru.replace(",", "."));
+      return pesoLiq === 0 || pesoBru === 0;
+    })
+    
+    // Só abre se houver itens
+    if (this.listaSelecionadosItensPeso.length > 0) {
+      this.ChamaPesoItem?.open()
+    }
+
+  }
 
   //--- Consolidar
   onChangeConsolidar() {
 
     if (this.listaSelecionados.length === 0) { return }
+
+    // Pega os números dos pedidos selecionado
+    const pedidosSelecionados = this.listaSelecionados.map(p => p.nrPedido)
+
+    // Filtra apenas os itens dos pedidos selecionados
+    const todosItens = this.listaSelecionadosItens.filter(item => pedidosSelecionados.includes(item.nrPedido))
+    
+    // Remove duplicados pelo código do item (itCodigo)
+    const itensUnicos = todosItens.filter((item, index, self) => index === self.findIndex(i => i.itCodigo === item.itCodigo))
+
+    const temPesoLiqVazio = itensUnicos.some(p => {
+                              const peso = p.pesoLiq
+
+                              // Converte para número (se possível)
+                              const pesoNum = Number(peso.toString().replace(',', '.'))
+                              return peso === null || peso === undefined || peso === '' || peso === '0,0000' || pesoNum === 0
+                            })
+
+    if (temPesoLiqVazio) {
+      this.srvNotification.warning('Existem itens com Peso Líquido igual a zero. Verifique antes de continuar.')
+      return
+    }
+
+    const temPesoBruVazio = itensUnicos.some(p => {
+                              const peso = p.pesoBru
+
+                              // Converte para número (se possível)
+                              const pesoNum = Number(peso.toString().replace(',', '.'))
+                              return peso === null || peso === undefined || peso === '' || peso === '0,0000' || pesoNum === 0
+                            })
+    if (temPesoBruVazio) {
+      this.srvNotification.warning('Existem itens com Peso Bruto igual a zero. Verifique antes de continuar.')
+      return
+    }
+
     this.srvDialog.confirm({
       title: 'Efetivar Consolidação',
       message: 'Deseja realmente Efetivar a Consolidação ?',
@@ -441,7 +687,6 @@ export class HomeComponent {
         this.labelLoadTela = "Carregando Dados"
 
         let paramsTela: any = { codEstabel: this.codEstabelecimento, items: [...this.listaSelecionados] }
-
         this.srvTotvs.ObterConsolidar(paramsTela).subscribe({ //ponto 1
           next: (response: any) => {
 
@@ -454,7 +699,7 @@ export class HomeComponent {
               this.listaConsolida      = (this.listaConsolida      as any[]).sort(this.ordenarCampos(['nrConsolidacao']))
 
               //Carrega a Lista de Filtro
-              this.listaConsolidaFiltro = this.listaConsolida
+              this.listaConsolidaFiltro = this.listaConsolida //1
 
               //Limpa a Lista de Selecionados
               this.listaSelecionados            = []
@@ -470,7 +715,7 @@ export class HomeComponent {
             this.onEstabChange(this.codEstabelecimento)
 
             //Atualizar o Combo de consolidação pendente
-            this.atualizaComboConsolidacao()
+            this.atualizaComboConsolidacao(this.listaConsolidaFiltro)
 
             //Vai para o próximo passo
             this.stepper.next()            
@@ -479,7 +724,7 @@ export class HomeComponent {
           error: (e) => {
             this.loadTela = false
           }
-        });
+        })
       },
       cancel: () => { }
 
@@ -492,15 +737,15 @@ export class HomeComponent {
   //--- Marcar desmarcar linha
   changeOptions(selecionados: any[]) {
 
+    this.listaSelecionados      = []
+    this.listaSelecionadosItens = []
+
     const sel = this.DadosSelecao.getSelectedRows()
     this.totSelecionado[0] = String(sel.length) //this.DadosSelecao.getSelectedRows().length.toString()
     this.totSelecionado[1] = String(sel.reduce((acc, item) => acc + Number(item.qtdItens), 0)) //this.DadosSelecao.getSelectedRows().reduce((acc, item) => acc + Number(item.qtdItens), 0)
     this.totSelecionado[2] = sel.reduce((acc, item) => acc + parseFloat((item.vlItens || 0).toString().replace(',', '.')), 0).toFixed(2) //this.DadosSelecao.getSelectedRows().reduce((acc, item) => acc + parseFloat((item.vlItens || 0).toString().replace(',','.')), 0).toFixed(2)
 
     this.listaSelecionados = [...sel].sort(this.ordenarCampos(['codEmitente', 'codTransp']))
-
-    //osni
-    //this.listaSelecionadosItens = []
 
   }
   //--- Marcar desmarcar linha
@@ -613,17 +858,20 @@ export class HomeComponent {
 
     this.loadPrioridade = 'Prioridade'
 
-    //Popular o DashBoard
+    //Popular Faturados
     this.srvTotvs.ObterTotais(obj).subscribe({ //1
       next: (response: any) => {
         delay(200)
 
-        this.listaSelecaoFiltrada   = []
-        this.itemsDetalhe           = []
-        this.listaSelecao           = []
-        this.listaSelecionadosItens = []
-        this.listaFaturados         = []
-
+        this.listaSelecaoFiltrada      = []
+        this.itemsDetalhe              = []
+        this.listaSelecao              = []
+        this.listaSelecionadosItens    = []
+        //this.listaConsolidaFiltro      = []
+        //this.listaConsolidaItensFiltro = []
+        //this.listaFaturadosFiltro      = []
+        //this.listaFaturadosItensFiltro = []
+        
         if (response && response.pedidos && response.pedidos.length > 0) {
           this.itemsDetalhe          = response.pedidos
           this.listaSelecao          = response.pedidos
@@ -634,9 +882,19 @@ export class HomeComponent {
           this.listaSelecionadosItens          = response.peditem          
         }
 
+        /*
         if (response && response.faturados && response.faturados.length > 0) {
-          this.listaFaturados = response.faturados
-        }
+          this.listaFaturadosItens = response.faturados
+          this.listaFaturados      = Array.from(new Map(this.listaFaturadosItens.map(item => [item.nrConsolidacao, item])).values())
+
+          //Transforma em número
+          this.listaFaturadosItens = this.listaFaturadosItens.map(item => ({ ...item, nrConsolidacao: Number(item.nrConsolidacao) }));
+          this.listaFaturados      = this.listaFaturados.map(item => ({ ...item, nrConsolidacao: Number(item.nrConsolidacao) }));
+
+          //Ordena a Lista
+          this.listaFaturadosItens = (this.listaFaturadosItens as any[]).sort(this.ordenarCampos(['nrConsolidacao']))
+          this.listaFaturados      = (this.listaFaturados      as any[]).sort(this.ordenarCampos(['nrConsolidacao']))
+        }*/
 
         if (response && response.consolidar && response.consolidar.length > 0) { //ponto 2
           
@@ -652,10 +910,11 @@ export class HomeComponent {
           this.listaConsolida      = (this.listaConsolida      as any[]).sort(this.ordenarCampos(['nrConsolidacao']))
 
           //Carrega lista de Filtro
-          this.listaConsolidaFiltro = this.listaConsolida
+          this.listaConsolidaFiltro = this.listaConsolida.filter(item => item.lConsolidado === 'Não')
+          //this.listaFaturadosFiltro = this.listaConsolida.filter(item => item.lConsolidado === 'Sim' /*&& (!item.lFaturado || item.lFaturado.trim() === '')*/ )
 
           if (response && response.pedidos && response.pedidos.length > 0) {
-            this.itemsTotal = [...response.pedidos, ...response.consolidar]
+            this.itemsTotal = [...response.pedidos, ...response.consolidar.filter((item: any) => item.lFaturado === 'Não' || item.lFaturado === '')]
           }
           else {
             this.itemsTotal = [...response.consolidar]
@@ -696,7 +955,7 @@ export class HomeComponent {
         //this.listaSelecionadosItens       = []
         this.listaSelecionadosItensFiltro = []
         //Atualizar o Combo de consolidação pendente
-        this.atualizaComboConsolidacao()
+        this.atualizaComboConsolidacao(this.listaConsolidaFiltro)
 
         this.loadTela           = false
 
@@ -710,10 +969,8 @@ export class HomeComponent {
   
   }
 
-  
-
   //--- Stepper
-  public onChangeStep(obj: any) {
+  public onChangeStep(obj: any) {    
 
     //Informacoes iniciais tela
     this.srvTotvs.EmitirParametros({ tituloTela: 'COCKPIT DE PEDIDOS - ' + obj.label + ' Estabelecimento [' + this.codEstabelecimento + ']', abrirMenu: false })
@@ -746,7 +1003,10 @@ export class HomeComponent {
   
   //--- Próximo Step
   public canActiveNextStep(passo: any): boolean {
-
+    
+    this.previousStep = this.currentStep
+    this.currentStep  = passo.label
+    
     if ((passo.label === "Dashboard") && (this.codEstabelecimento === '' || this.codEstabelecimento === undefined)) {
       this.srvNotification.error('Estabelecimento não foi selecionado');
       return false
@@ -764,17 +1024,95 @@ export class HomeComponent {
     }
     */
     if (passo.label === 'Resumo') {
-      this.atualizaComboConsolidacao()
+      this.atualizaComboConsolidacao(this.listaConsolidaFiltro)
+      this.atualizaComboConsolidacao(this.listaFaturadosFiltro)
     }
 
     if (passo.label === 'Pré-Faturamento') {
-      this.atualizaComboConsolidacao()
+      this.atualizaComboConsolidacao(this.listaConsolidaFiltro)
+      this.atualizaComboConsolidacao(this.listaFaturadosFiltro)
+      
+      if (this.previousStep === "Resumo"){
+        this.onFatChange()
+      }
+
     }
 
     return true
 
   }
   //--- Próximo Step
+
+  //Atualiza Faturados
+  public onFatChange(){
+      this.loadTela      = true
+      this.labelLoadTela = "Carregando Faturados"
+
+      let paramsTela: any = { codEstabel: this.codEstabelecimento, dthrAlt: this.dthrAlt}
+      this.srvTotvs.ObterTotaisFat(paramsTela).subscribe({ //ponto 1
+          next: (response: any) => {
+
+            //this.listaFaturadosFiltro      = []
+            //this.listaFaturadosItensFiltro = []
+
+            if (response && response.faturados && response.faturados.length > 0) {
+              this.listaFaturadosItens = response.faturados
+              this.listaFaturados      = Array.from(new Map(this.listaFaturadosItens.map(item => [item.nrConsolidacao, item])).values())
+
+              //Transforma em número
+              this.listaFaturadosItens = this.listaFaturadosItens.map(item => ({ ...item, nrConsolidacao: Number(item.nrConsolidacao) }));
+              this.listaFaturados      = this.listaFaturados.map(item => ({ ...item, nrConsolidacao: Number(item.nrConsolidacao) }));
+
+              //Ordena a Lista
+              this.listaFaturadosItens = (this.listaFaturadosItens as any[]).sort(this.ordenarCampos(['nrConsolidacao']))
+              this.listaFaturados      = (this.listaFaturados      as any[]).sort(this.ordenarCampos(['nrConsolidacao']))
+
+            }
+            
+            if (response && response.consolidar && response.consolidar.length > 0) { //ponto 2
+          
+              this.listaConsolidaItens = response.consolidar
+              this.listaConsolida      = Array.from(new Map(this.listaConsolidaItens.map(item => [item.nrConsolidacao, item])).values())
+
+              //Transforma em número
+              this.listaConsolidaItens = this.listaConsolidaItens.map(item => ({ ...item, nrConsolidacao: Number(item.nrConsolidacao) }));
+              this.listaConsolida      = this.listaConsolida.map(item => ({ ...item, nrConsolidacao: Number(item.nrConsolidacao) }));
+
+              //Ordena a Lista
+              this.listaConsolidaItens = (this.listaConsolidaItens as any[]).sort(this.ordenarCampos(['nrConsolidacao']))
+              this.listaConsolida      = (this.listaConsolida      as any[]).sort(this.ordenarCampos(['nrConsolidacao']))
+
+              //Carrega lista de Filtro
+              //this.listaConsolidaFiltro = this.listaConsolida.filter(item => item.lConsolidado === 'Não')
+              this.listaFaturadosFiltro = this.listaConsolida.filter(item => item.lConsolidado === 'Sim' /*&& (!item.lFaturado || item.lFaturado.trim() === '')*/ )
+
+              if (response && response.pedidos && response.pedidos.length > 0) {
+                this.itemsTotal = [...response.pedidos, ...response.consolidar.filter((item: any) => item.lFaturado === 'Não' || item.lFaturado === '')]
+              }
+              else {
+                this.itemsTotal = [...response.consolidar]
+              }
+
+            }
+            else {
+
+              this.listaConsolida = []
+              if (response && response.pedidos && response.pedidos.length > 0) {
+                this.itemsTotal = [...response.pedidos]
+              }
+
+            }
+            this.loadTela = false
+          },
+          error: (e) => {
+            this.loadTela = false
+          },
+          complete(){
+            
+          }
+
+      })
+  }
 
   //--- Change Transportadora
   public onTranspChange(obj: string) {
@@ -804,27 +1142,32 @@ export class HomeComponent {
       const filtroConsolida = obj ? Number(item.nrConsolidacao) === Number(obj) : true
 
       return filtroConsolida
-    });
+    })
 
   }
-  //--- Filtrar Consolidacao
+
+  //--- Filtrar Faturados
+   public onFiltrarFaturadosChange(obj: any) {
+
+    console.log(this.listaFaturados)
+    this.listaFaturadosFiltro = this.listaFaturados.filter(item => {
+      const filtroFaturados = obj ? Number(item.nrConsolidacao) === Number(obj) : true
+
+      return filtroFaturados
+    })
+
+  }
 
   //--- Filtra Lista
   public filtrarLista() {
     this.listaSelecaoFiltrada = this.listaSelecao.filter(item => {
-      const filtroEmitente = this.emitenteSelecionado
-        ? item.codEmitente === this.emitenteSelecionado
-        : true;
+      const filtroEmitente = this.emitenteSelecionado ? item.codEmitente === this.emitenteSelecionado: true
 
-      const filtroTransp = this.transportadoraSelecionado
-        ? item.codTransp === this.transportadoraSelecionado
-        : true;
+      const filtroTransp = this.transportadoraSelecionado ? item.codTransp === this.transportadoraSelecionado: true
 
-      const filtroPrioridade = this.prioridadeSelecionado
-        ? item.indPrioridade === this.prioridadeSelecionado
-        : true;
+      const filtroPrioridade = this.prioridadeSelecionado ? item.indPrioridade === this.prioridadeSelecionado: true
 
-      return filtroEmitente && filtroTransp && filtroPrioridade;
+      return filtroEmitente && filtroTransp && filtroPrioridade
     });
 
   }
@@ -873,7 +1216,7 @@ export class HomeComponent {
     let dir = 1;
     if (o[0] === '-') { dir = -1; o = o.substring(1); }
     return a[o] > b[o] ? dir : a[o] < b[o] ? -(dir) : 0;
-  }).reduce((p, n) => p ? p : n, 0);
+  }).reduce((p, n) => p ? p : n, 0)
   //--- Função para Ordenar
 
   //--- Limpar filtro
@@ -883,7 +1226,7 @@ export class HomeComponent {
       if (filtro !== null && filtro !== undefined)
         filtro.value = ''
 
-    }, 500);
+    }, 500)
 
   }
   //--- Limpar filtro
@@ -893,7 +1236,7 @@ export class HomeComponent {
     let params = { RowId: "0x000000003f0f2186" }
     this.srvTotvs.AbrirProgramaTotvs(params).subscribe({
       next: (response: any) => {
-        //console.log(response)
+       
       }
     })
   }

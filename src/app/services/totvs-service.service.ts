@@ -55,8 +55,10 @@ export class TotvsService {
       { property: 'codTransp',     label: 'codTransporte', visible: false },
       { property: 'nomTransp',     label: 'Transporte', },
       { property: 'indPrioridade', label: 'Pri.' },
-      { property: 'qtdItens',      label: 'Qtd.Itens',     visible: true, width: '100px' },
-      { property: 'vlItens',       label: 'Vl.Itens',      visible: true, type: 'currency', format: 'BRL' },
+      { property: 'qtdItens',      label: 'Qtd.Itens',     visible: false, width: '100px' },
+      { property: 'vlItens',       label: 'Vl.Itens',      visible: false, type: 'currency', format: 'BRL' },
+      { property: 'lConsolidado',  label: 'C' },
+      { property: 'lFaturado',     label: 'F' },
       
     ]
 
@@ -88,7 +90,18 @@ export class TotvsService {
       { property: 'itCodigo',      label: 'Item' },
       { property: 'qtdItens',      label: 'Qtd.Itens', visible: true  },
       { property: 'codDepos',      label: 'Depósito' },
+      { property: 'pesoLiq',       label: 'Peso Líq.' },
+      { property: 'pesoBru',       label: 'Peso Bru.' },
       { property: 'vlItens',       label: 'Vl.Itens',  visible: true, type: 'currency', format: 'BRL' },
+    ]
+
+  }
+
+  obterColunasSelecaoItensPeso(): Array<PoTableColumn> {
+    return [
+      { property: 'itCodigo',      label: 'Item' },
+      { property: 'pesoLiq',       label: 'Peso Líq.' },
+      { property: 'pesoBru',       label: 'Peso Bru.' },
     ]
 
   }
@@ -99,8 +112,13 @@ export class TotvsService {
       { property: 'nrConsolidacao',label: 'Nr.Cons.', visible: true, width: '140px', type: 'number'},
       { property: 'descEmitente',  label: 'Emitente' },
       { property: 'nomTransp',     label: 'Transporte', },
-      { property: 'userAlt',       label: 'Usuário' }, 
-      { property: 'lConsolidado',  label: 'Consolidado' },
+      { property: 'dthrAlt',       label: 'Data Alt.',         type:'date', format: "dd/MM/yyyy"},
+      { property: 'userAlt',       label: 'Usuário' },
+      { property: 'pedExec',       label: 'pedExec',           type:'cellTemplate' },
+      { property: 'opcoes',        label: 'Ações Disponíveis', type:'cellTemplate' },      
+      { property: 'lConsolidado',  label: 'Consolidado', visible: true },
+      { property: 'lFaturado',     label: 'Faturado',    visible: true },
+      
     ]
 
   }
@@ -114,8 +132,10 @@ export class TotvsService {
       { property: 'nrPedido',      label: 'Pedido' },
       { property: 'descEmitente',  label: 'Emitente' },
       { property: 'nomTransp',     label: 'Transporte', },
+      { property: 'dthrAlt',       label: 'Data Alt.', type:'date', format: "dd/MM/yyyy"},
       { property: 'userAlt',       label: 'Usuário' },
       { property: 'lConsolidado',  label: 'Consolidado' },
+      { property: 'lFaturado',     label: 'Faturado' },
     ]
 
   }
@@ -124,7 +144,7 @@ export class TotvsService {
     return [
       { property: 'codEstabel',    label: 'Estab.',   visible: false, width: '120px'},
       { property: 'nrConsolidacao',label: 'Nr.Cons.', visible: true,  width: '140px', type: 'number'},
-      { property: 'dtEmisNota',    label: 'Data'},
+      { property: 'dtEmisNota',    label: 'Data', type:'date', format: "dd/MM/yyyy"},
       { property: 'cSerie',        label: 'Serie' },
       { property: 'nrNotaFis',     label: 'Nota Fiscal' },      
       { property: 'cddEmbarqRes',  label: 'Embarque/Res'},
@@ -151,6 +171,11 @@ export class TotvsService {
     return this.http.post(`${this._url}/ObterConsolidar`, params, {headers:headersTotvs}).pipe(take(1))
   }
 
+  //--- Peso Item
+  public ObterPesoItem(params?: any){
+    return this.http.post(`${this._url}/ObterPesoItem`, params, {headers:headersTotvs}).pipe(take(1))
+  }
+
   //--- Eliminar Pedido da Consolidação por id
   public EliminarPorId(params?: any) {
     return this.http.post(`${this._url}/EliminarPorId`, params, { headers: headersTotvs }).pipe(take(1));
@@ -164,6 +189,11 @@ export class TotvsService {
   //--- Obter parametros de Cadastro
   public ObterCadastro(params?: any){
     return this.http.get(`${this._urlGeral}/ObterCadastro`, {params:params, headers:headersTotvs}).pipe(take(1));
+  }
+
+  //--- Parametros do Estabelecimento
+  public ObterParamsDoEstabelecimento(id: string) {
+    return this.http.get<any>(`${this._url}/ObterParamsEstab?codEstabel=${id}`, {headers: headersTotvs,}).pipe(take(1));
   }
 
   //--- COMBOBOX TECNICOS
@@ -219,6 +249,11 @@ export class TotvsService {
   //--- Obter a lista totais de Pedidos do Estabelecimento
   public ObterTotais(params?: any) {
     return this.http.get(`${this._url}/ObterTotais?codEstabel=${params}`, { headers: headersTotvs, }).pipe(take(1));
+  }
+
+  public ObterTotaisFat(params?: any) {
+    return this.http.get(`${this._url}/ObterTotaisFat`, {params:params, headers:headersTotvs}).pipe(take(1));
+    //return this.http.get(`${this._url}/ObterTotaisFat?codEstabel=${params}`, { headers: headersTotvs, }).pipe(take(1));
   }
 
   //--- Programas DDK

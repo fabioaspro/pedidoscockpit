@@ -215,7 +215,7 @@
                   
                                        (p-unselected)="changeOptions($event)" 
                                        (p-all-selected)="changeOptions($event)"
-                  
+
                                        (p-all-unselected)="changeOptions($event)"
                                        [p-striped]="true" 
                                        p-sort="true"
@@ -339,13 +339,13 @@
 
             <po-widget class="po-md-12" style="margin-top: 5px;">
 
-              <div class="filtros-container"
-                style="margin-left:10px;margin-right: 10px;margin-top: 10px;margin-bottom: 10px;">
+              <div class="filtros-container" style="margin-left:10px;margin-right: 10px;margin-top: 10px;margin-bottom: 10px;">
 
                 <po-button p-tooltip="Consolidar"    p-icon="an an-arrows-in-cardinal"   (click)="onChangeConsolidar()" p-label="Consolidar"></po-button>
                 <po-button p-tooltip="Próximo Passo" p-icon="bi bi-chevron-double-right" (click)="onProximoStep()"></po-button>
-
+                <po-button p-tooltip="Peso do Item"  p-icon="an an-scales"               (click)="onPesoItem()" style="margin-left: auto;"></po-button>
               </div>
+              
 
             </po-widget>
             <po-widget class="po-md-12" style="margin-top: 5px;">
@@ -358,7 +358,7 @@
                           [p-sort]="true" 
                           [p-loading]="loadTela"
                           [p-height]="alturaGridConsolidados" 
-                          
+                          [p-actions]="opcoesGridResumo"
                           [p-hide-table-search]="true"
                           [p-hide-columns-manager]="true" 
                           (p-expanded)="ObterItensSelecionados($event)">
@@ -371,7 +371,7 @@
                               [p-height]="185" 
                               [p-hide-table-search]="false"
                               [p-hide-columns-manager]="true" 
-                              [p-actions]="opcoesGridConsolida"
+                              
                               p-container="true" >
                     </po-table>
                   </ng-template>
@@ -439,8 +439,10 @@
                           [p-hide-table-search]="true"
                           [p-hide-columns-manager]="true" 
                           (p-expanded)="ObterItensConsolida($event)">
-                  <ng-template p-table-row-template let-rowItem let-i="rowIndex" 
-                              [p-table-row-template-show]="mostrarDetalhe">
+
+                  <ng-template p-table-cell-template 
+                              cp-table-row-template let-rowItem let-i="rowIndex" 
+                              [p-table-row-template-show]="mostrarDetalhe"> 
                     <po-table [p-columns]="colunasConsolidaItens" 
                               [p-items]="listaConsolidaItensFiltro" 
                               [p-striped]="true"
@@ -449,6 +451,107 @@
                               [p-hide-table-search]="false"
                               [p-hide-columns-manager]="true" 
                               [p-actions]="opcoesGridConsolida"
+                              p-container="true" >
+                    </po-table>
+                  </ng-template>
+                </po-table>
+
+              </div>
+            </po-widget>
+
+          </div>
+
+          
+          <h5 class="versao">
+            <div style="font-size: 8px; display: flex; justify-content: space-between; width: 100%;">
+              <div class="po-md-6"><span>Atualizado em: {{ultatt}}</span></div>
+              <div class="po-md-6"><span>* Obs: A quebra da Consolidação é feita por Emitente e Transportadora</span></div>
+            </div>
+          </h5>
+
+        </po-widget>
+
+      </div>
+      
+    </div>
+
+  </po-step>
+  <po-step p-label="Executando" [p-can-active-next-step]="canActiveNextStep.bind(this)">
+    <div class='hero'>
+      <div class="homepage">
+
+        <po-widget class="po-md-12" [p-height]="alturaStepperSel">
+          <div class="po-row" style="margin-bottom: 5px;"></div>
+          <div class="po-md-12">
+
+            <po-widget class="po-md-12" style="margin-top: 5px;">
+
+              <div class="filtros-container" style="margin-left:10px;margin-right: 10px;margin-top: 10px;margin-bottom: 10px;">
+
+                <po-datepicker p-label="Data de Faturamento" name="dthrAlt" [(ngModel)]="dthrAlt" (p-change)="onFatChange()"></po-datepicker>
+                <po-button p-tooltip="Atualizar Dados" p-icon="bi bi-arrow-clockwise"    style="height: 10px;" (click)="onFatChange()"></po-button>
+
+              </div>
+
+            </po-widget>
+            <po-widget class="po-md-12" style="margin-top: 5px;">
+
+              <div class="frame-grid-resumo">
+                
+                <po-table [p-items]="listaFaturadosFiltro" 
+                          [p-striped]="true" 
+                          [p-sort]="true" 
+                          [p-loading]="loadTela"
+                          [p-height]="alturaGridConsolidados" 
+                          [p-columns]="colunasConsolida" 
+                          [p-hide-table-search]="true"
+                          [p-hide-columns-manager]="true" 
+                          (p-expanded)="ObterItensFaturados($event)">
+                  <ng-template p-table-cell-template let-column="column" let-row="row">
+                    @if(column.property === 'pedExec'){
+               
+                        <div style="display: flex; align-items: center; gap:5px;padding: 1px;border-radius: 4px;">
+                            @if(row['descPedExec'] === 'Executando Pedido'){
+                                <div class="po-font-text-smaller" style=" color:white;background-color: var(--color-10);border: 2px solid var(--color-10); border-radius: 4px; min-width: 30px; text-align: center;padding:0 2px">{{row['descPedExec']}}<div class='loading po-font-text-smaller'>...</div></div>
+                            }
+                            @else if(row['descPedExec'] === 'Execução com Sucesso'){
+                                <div class="po-font-text-smaller" style="border: 2px solid var(--color-10); border-radius: 4px; min-width: 30px; text-align: center;padding:0 2px">{{row['descPedExec']}}</div>
+                            }
+                            @else if(row['descPedExec'] === 'Tempo de inatividade excedido'){
+                                <div class="po-font-text-smaller" style="border: 2px solid var(--color-07); border-radius: 4px; min-width: 30px; text-align: center;padding:0 2px">{{row['descPedExec']}}</div>
+                            }
+                            @else{
+                                <div class="po-font-text-smaller" style="border: 2px solid gray; border-radius: 4px; min-width: 30px; text-align: center;padding:0 2px">{{row['descPedExec']}}</div>  
+                            }
+                            <div>{{row['pedExec']}}</div>
+                        </div>
+                    }
+                    @if(column.property === 'opcoes'){
+                        <div class="menuGrid">
+                            <div><button class="btn" (click)="onReprocessarFat(row)" style="background-color: rgba(0,73,122,0.6) ; color:white; border: 1px solid white"  ><p><i class="bi bi-calendar2-check"></i> Reprocessar</p></button></div>
+                            <!--"
+                            
+                            <div><button class="btn" (click)="NotasFiscais(row)" ><p><i class="bi bi-archive"></i>Reprocessar</p></button></div>
+                            <div [ngClass]="row.situacao === 'R' && row['desc-ped-exec'] === 'Execução com Sucesso' ? 'show' : 'hide'"><button class="btn"  (click)="Reparos(row)"><p><i class="bi bi-tools"></i> Reparos</p></button></div>
+                            <div [ngClass]="row.situacao === 'B' && row['desc-ped-exec'] === 'Execução com Sucesso' ? 'show' : 'hide'"><button class="btn"  (click)="Embalagem(row)"><p><i class="bi bi-box2"></i> Embalagem</p></button></div>
+                            <div [ngClass]="row.situacao === 'L' && row['desc-ped-exec'] === 'Execução com Sucesso' ? 'show' : 'hide'"><button class="btn"  (click)="ResumoFinal(row)"><p><i class="bi bi-printer"></i> Resumo Final</p></button></div>
+                             -->
+                        </div>
+                    }
+                    
+                  
+                  </ng-template>
+                          
+
+                  <ng-template p-table-row-template let-rowItem let-i="rowIndex" 
+                              [p-table-row-template-show]="mostrarDetalhe">
+                    <po-table [p-columns]="colunasFaturados" 
+                              [p-items]="listaFaturadosItensFiltro" 
+                              [p-striped]="true"
+                              [p-sort]="true" 
+                              [p-height]="215" 
+                              [p-hide-table-search]="false"
+                              [p-hide-columns-manager]="true" 
                               p-container="true" >
                     </po-table>
                   </ng-template>
@@ -482,21 +585,8 @@
 
               <div class="filtros-container" style="margin-left:10px;margin-right: 10px;margin-top: 10px;margin-bottom: 10px;">
 
-                <po-combo p-label="Consolidação" 
-                          [ngModel]="indConsolidacao" 
-                          (ngModelChange)="nrConsolidacao = $event"
-                            
-                          p-icon="bi bi-person-workspace" 
-                          (p-change)="onFiltrarConsolidacaoChange($event)"
-                            
-                          [p-placeholder]="loadConsolidacao" 
-                          p-clean="true" 
-                          [p-clean]="true"
-                            
-                          [p-options]="listaConsolidacao">
-                </po-combo>
-                <po-button p-tooltip="Atualizar Dados" p-icon="bi bi-arrow-clockwise"    style="height: 10px;" (click)="onEstabChange(codEstabelecimento)"></po-button>
-                <po-button p-tooltip="Faturar"         p-icon="an an-arrows-in-cardinal" style="height: 10px;" (p-click)="onChangeFaturar()" p-label="Faturar" ></po-button>
+                <po-datepicker p-label="Data de Faturamento" name="dthrAlt" [(ngModel)]="dthrAlt" (p-change)="onFatChange()"></po-datepicker>
+                <po-button p-tooltip="Atualizar Dados" p-icon="bi bi-arrow-clockwise"    style="height: 10px;" (click)="onFatChange()"></po-button>
 
               </div>
 
@@ -505,25 +595,24 @@
 
               <div class="frame-grid-resumo">
                 
-                <po-table [p-items]="listaFaturados" 
+                <po-table [p-items]="listaFaturadosFiltro" 
                           [p-striped]="true" 
                           [p-sort]="true" 
                           [p-loading]="loadTela"
-                          [p-height]="alturaGridFaturados" 
-                          [p-columns]="colunasFaturados" 
+                          [p-height]="alturaGridConsolidados" 
+                          [p-columns]="colunasConsolida" 
                           [p-hide-table-search]="true"
                           [p-hide-columns-manager]="true" 
-                          (p-expanded)="ObterItensConsolida($event)">
+                          (p-expanded)="ObterItensFaturados($event)">
                   <ng-template p-table-row-template let-rowItem let-i="rowIndex" 
                               [p-table-row-template-show]="mostrarDetalhe">
-                    <po-table [p-columns]="colunasConsolidaItens" 
-                              [p-items]="listaConsolidaItensFiltro" 
+                    <po-table [p-columns]="colunasFaturados" 
+                              [p-items]="listaFaturadosItensFiltro" 
                               [p-striped]="true"
                               [p-sort]="true" 
                               [p-height]="215" 
                               [p-hide-table-search]="false"
                               [p-hide-columns-manager]="true" 
-                              [p-actions]="opcoesGridFaturados"
                               p-container="true" >
                     </po-table>
                   </ng-template>
@@ -633,17 +722,48 @@
 
   <form [formGroup]="form">
 
-    <po-divider p-label="Informações de Transporte"></po-divider>
+    <po-divider p-label="Informações da Nota Fiscal"></po-divider>
 
-    <div class="po-row">
-      <po-input class="po-md-6" name="pesoLiquido" p-label="Peso Líquido (kg)" p-required
-        p-help="Informe o peso líquido da carga" formControlName="pesoLiquido">
-      </po-input>
+    <div class="po-row">      
+      
+      <!-- Coluna para Série Saída -->
+      <div class="po-col po-md-6">
 
-      <po-input class="po-md-6" name="pesoBruto" p-label="Peso Bruto (kg)" p-required
-        p-help="Informe o peso bruto da carga" formControlName="pesoBruto">
-      </po-input>
+        <po-input  [(ngModel)] ="serieSaida" name="serieSaida" formControlName="serieSaida" class="po-lg-9" required p-clean p-icon="bi bi-file-earmark-text"
+                    p-label="Série Saída" p-help="Informe a Série de Saída da Nota Fiscal"/>
+
+      </div>      
+      <!-- Coluna para Transportadora -->
+      <div class="po-col po-md-6">
+
+        <po-combo p-label="Transportadora" 
+                            [ngModel]="codTranspnf"
+                            name="codTranspnf"
+                            formControlName="codTranspnf" 
+                            (ngModelChange)="codTransp = $event"
+                            p-icon="bi bi-person-workspace" 
+                            [p-options]="listaTranspFiltrada"                             
+                            (p-change)="onTranspChange($event)"
+                            p-help="Informe a Transportadora da Nota Fiscal"
+                            [p-placeholder]="loadTransp" 
+                            p-clean="true"
+                            [p-clean]="true">
+                    <ng-template p-combo-option-template let-option>
+                      <div class="po-row">
+                        <po-icon class="po-sm-2 po-md-3 po-lg-1" p-size="sm" p-icon="bi bi-person-workspace"></po-icon>
+                        <div class="po-sm-10 po-md-9 po-lg-11">
+                          <div class="po-font-text-large-bold">{{ option.label }}</div>
+                          <div class="po-font-text-smaller">Transportadora: {{ option.value }}</div>
+                        </div>
+                      </div>
+                    </ng-template>
+                  </po-combo>
+      
+      </div>
     </div>
+    <br>
+    
+    <po-divider p-label="Informações de Transporte"></po-divider>
 
     <div class="po-row" style="margin-top: 10px;">
       <po-input class="po-md-6" name="volume" p-label="Volume" p-required formControlName="volume">
@@ -666,6 +786,48 @@
 
 </po-modal>
 
+<!--Tela de Informação do Faturamento -->
+<po-modal #ChamaPesoItem p-size="100px" p-title="Informe o Peso do Item" >
+  
+    <div class="sample-container">
+      <po-loading-overlay *ngIf="loadTela===true" [p-text]="labelLoadTela" [p-screen-lock]="true"></po-loading-overlay>
+    </div>
+
+    <form [formGroup]="form">
+
+      <po-table [p-items]="listaSelecionadosItensPeso" 
+                [p-columns]="colunasSelecaoItensPeso" 
+                [p-striped]="true"
+                [p-sort]="true"
+                [p-height]="185" 
+                [p-hide-table-search]="false"
+                [p-hide-columns-manager]="true" 
+                [p-actions]="opcoesGridPeso"
+                p-container="true" >
+      </po-table>   
+
+    </form>
+
+    <po-modal-footer [p-disabled-align]="false">
+        <po-button p-kind="primary" p-label="Fechar" (p-click)="this.ChamaPesoItem?.close()"> </po-button>
+    </po-modal-footer>
+  
+</po-modal>
+
+
+
+<!-- Modal para edição -->
+<po-modal #alteraPeso p-title="Editar Peso" p-size="sm">
+  <div class="po-modal-content" style="display: flex; gap: 16px;">
+    <po-input name="pesoLiq" [(ngModel)]="selectedItem.pesoLiq" p-label="Peso Líq." p-type="number" #pesoLiqInput></po-input>
+    <po-input name="pesoBru" [(ngModel)]="selectedItem.pesoBru" p-label="Peso Bru." p-type="number"></po-input>
+  </div>
+
+  <po-modal-footer>
+    <po-button p-label="Cancelar" (click)="alteraPeso.close()"></po-button>
+    <po-button p-label="Salvar"   (click)="saveItem(alteraPeso)"></po-button>
+  </po-modal-footer>
+</po-modal>
 
 
 <!--Tela de Informação do Faturamento
@@ -701,7 +863,6 @@
         <po-button p-label="true"   p-label="Cancelar"  > </po-button>
         <po-button p-kind="primary" p-label="Confirmar" > </po-button>
     </po-modal-footer>
-
   
 </po-modal>
 -->

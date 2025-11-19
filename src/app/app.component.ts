@@ -64,6 +64,12 @@ export class AppComponent implements OnInit {
       action: () => this.AbrirProgramaTotvs('ftp/ft0904.w'),
     },
     {
+      label: 'Relatório Movto',
+      icon: 'bi bi-printer',
+      link: '/relmovto',
+      shortLabel: 'Relatório de Movimento',
+    },
+    {
       label: 'Envio para Histórico',
       icon: 'bi bi-database-up',
       link: '/envhist',
