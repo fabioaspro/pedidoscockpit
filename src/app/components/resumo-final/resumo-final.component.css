@@ -1,0 +1,12 @@
+
+:host ::ng-deep .po-page-content {
+  padding: 8px !important; /* padrão costuma ser ~24px */
+}
+
+:host ::ng-deep .po-page {
+  padding: 0 !important;
+}
+
+:host ::ng-deep .po-widget {
+  margin-top: 8px !important;
+}

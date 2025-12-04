@@ -1,15 +1,15 @@
 import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation, inject, signal } from '@angular/core';
-import { PoMenuItem, PoModalAction, PoModalComponent, PoPageAction, PoRadioGroupOption, PoStepperComponent, PoTableAction, PoTableColumn, PoTableComponent, PoNotificationService, PoDialogService, PoNotification, PoButtonComponent, PoLoadingModule, PoStepperModule, PoWidgetModule, PoDividerModule, PoFieldModule, PoIconModule, PoTableModule, PoButtonModule, PoTooltipModule, PoRadioGroupModule, PoModalModule, PoModule, PoAccordionModule, PoTableLiterals, PoStepComponent, PoContainerModule, PoComboOption } from '@po-ui/ng-components';
-import { TotvsService } from '../../services/totvs-service.service';
+import { PoMenuItem, PoModalAction, PoModalComponent, PoPageAction, PoRadioGroupOption, PoStepperComponent, PoTableAction, PoTableColumn, PoTableComponent, PoNotificationService, PoDialogService, PoNotification, PoButtonComponent, PoLoadingModule, PoStepperModule, PoWidgetModule, PoDividerModule, PoFieldModule, PoIconModule, PoTableModule, PoButtonModule, PoTooltipModule, PoRadioGroupModule, PoModalModule, PoModule, PoAccordionModule, PoTableLiterals, PoStepComponent, PoContainerModule, PoComboOption, PoPageModule } from '@po-ui/ng-components';
+import { TotvsService } from '../../services/totvs-service.service'
 import { catchError, delay, elementAt, finalize, first, forkJoin, interval, of, Subscription } from 'rxjs';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ExcelService } from '../../services/excel-service.service';
 import { Usuario } from '../../interfaces/usuario';
 import { TotvsService46 } from '../../services/totvs-service-46.service';
-//import { BtnDownloadComponent } from '../btn-download/btn-download.component';
 import { NgClass, NgIf, CurrencyPipe, CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-//import { RpwComponent } from '../rpw/rpw.component';
+import { BtnDownloadComponent } from '../btn-download/btn-download.component';
+import { RpwComponent } from '../rpw/rpw.component';
 
 @Component({
   selector: 'app-home',
@@ -34,8 +34,11 @@ import { Router, RouterLink } from '@angular/router';
     PoRadioGroupModule,
     PoModalModule,
     PoAccordionModule,
-    PoContainerModule
-  ]
+    PoContainerModule,
+    PoPageModule,
+    BtnDownloadComponent,
+    RpwComponent
+]
 })
 export class HomeComponent {
 
@@ -92,6 +95,7 @@ export class HomeComponent {
   listaFaturamento!:            any[]
   listaFaturados:               any[] = []
   listaFaturadosFiltro:         any[] = []
+  listaExecutandoFiltro:        any[] = []
   listaFaturadosItens:          any[] = []
   listaFaturadosItensFiltro:    any[] = []
   selectedRows:                 any[] = []
@@ -101,17 +105,27 @@ export class HomeComponent {
   colunasSelecaoItens:    Array<PoTableColumn> = []
   colunasSelecaoItensPeso:Array<PoTableColumn> = []
   colunasConsolida:       Array<PoTableColumn> = []
+  colunasConsolidaExec:   Array<PoTableColumn> = []
+  colunasConsolidaFat:    Array<PoTableColumn> = []
   colunasConsolidaItens:  Array<PoTableColumn> = []
   colunasFaturados:       Array<PoTableColumn> = []
 
   //--- Controle de Modal
   lHideSearch: boolean = false
 
+  //--- Controle do acompanhamento RPW
+  numPedExec         = signal(0)
+  labelTimer         : string='Aguarde a liberação do arquivo...'
+  labelTimerDetail   : string=''
+  labelPedExec       : string=''
+  telaTimerFoiFechada: boolean=false
+  sub!               : Subscription
+
   //--- Informacoes Dialog Grids (Resumo)
   colunasDetalhe: Array<PoTableColumn> = []
   tituloDetalhe!: string
-  itemsDetalhe!:  any[]
-  itemsTotal!:    any[]
+  itemsDetalhe! : any[]
+  itemsTotal!   : any[]
   
   //--- Variaveis e Combobox
   codEstabelecimento:          string = ''
@@ -130,6 +144,14 @@ export class HomeComponent {
   currentStep                  = '' // etapa atual
   previousStep                 = ''
 
+  //--- Modal Resumo
+  consolidacao:       any
+  pageActions:        Array<any> = []
+  listaErros!:        any[]
+  colunasErro!:       PoTableColumn[]
+  alturaGridLog:      number=window.innerHeight - 555
+  cMensagemErroRPW    = ''
+
   //--- Referencias
   @ViewChild('detailsModalTot',  { static: true }) detailsModalTot:  PoModalComponent | undefined
   @ViewChild('detailsModalPend', { static: true }) detailsModalPend: PoModalComponent | undefined
@@ -137,9 +159,11 @@ export class HomeComponent {
   @ViewChild('ChamaFaturar',     { static: true }) ChamaFaturar:     PoModalComponent | undefined
   @ViewChild('ChamaPesoItem',    { static: true }) ChamaPesoItem:    PoModalComponent | undefined
   @ViewChild('alteraPeso',       { static: true }) alteraPeso:       PoModalComponent | undefined
+  @ViewChild('Resumo',           { static: true }) Resumo:           PoModalComponent | undefined
   @ViewChild('ttDadosConc')                        DadosSelecao!:    PoTableComponent
   @ViewChild('stepper')                            stepper!:         PoStepperComponent
-  @ViewChild('pesoLiqInput')                       pesoLiqInput!:    ElementRef;
+  @ViewChild('pesoLiqInput')                       pesoLiqInput!:    ElementRef
+  @ViewChild('timer',            { static: true }) telaTimer:      | PoModalComponent | undefined
 
   //--- Serviços injetados
   private srvTotvs        = inject(TotvsService)
@@ -147,7 +171,8 @@ export class HomeComponent {
   private srvNotification = inject(PoNotificationService)
   private srvDialog       = inject(PoDialogService)
   private formConsulta    = inject(FormBuilder)
-
+  private router          = inject(Router)
+  
   //--- Formulario
   public form = this.formConsulta.group({
     serieSaida:  ['', Validators.required],
@@ -184,6 +209,7 @@ export class HomeComponent {
   customLiterals: PoTableLiterals = {
     noData: 'Infome os filtros para Buscar os Dados',
   };
+  
 
   //-- ngOnInit inicial da tela
   ngOnInit(): void {
@@ -196,6 +222,8 @@ export class HomeComponent {
     this.colunasSelecaoItens     = this.srvTotvs.obterColunasSelecaoItens()
     this.colunasSelecaoItensPeso = this.srvTotvs.obterColunasSelecaoItensPeso()
     this.colunasConsolida        = this.srvTotvs.obterColunasConsolida()
+    this.colunasConsolidaExec    = this.srvTotvs.obterColunasConsolidaExec()
+    this.colunasConsolidaFat     = this.srvTotvs.obterColunasConsolidaFat()
     this.colunasConsolidaItens   = this.srvTotvs.obterColunasConsolidaItems()
     this.colunasFaturados        = this.srvTotvs.obterColunasFaturado()
 
@@ -228,43 +256,119 @@ export class HomeComponent {
       error: (e) => {
         this.srvNotification.error(e.message)
         return
+      },
+      complete: () => {
+        /*
+        //FAS - Aqui apagar depois
+        this.codEstabelecimento = "101"
+        this.onEstabChange(this.codEstabelecimento)
+        this.stepper.next()
+        this.stepper.next()
+        this.stepper.next()
+        this.stepper.next()
+        this.dthrAlt = new Date(2025, 10, 24)
+        //FAS - Aqui apagar depois
+        */
       }
+
     })
 
   }
   //-- ngOnInit inicial da tela 
 
+  //--- Obter dados do Resumo
+  verificarResumo() {
+      this.loadTela = true
+      
+      let paramsNota: any = {NrConsolidacao: this.consolidacao};
+      this.srvTotvs.ObterResumo(paramsNota).subscribe({
+
+        next: (response: any) => {
+          this.listaErros       = response.erros
+          this.cMensagemErroRPW = response.rpw[0].mensagemRPW
+        },
+        error: (e) => {
+          //this.srvNotification.error('Ocorreu um erro na requisição')
+          this.loadTela = false
+          return
+        },
+        complete: () => {
+          this.loadTela = false
+        }
+
+      })
+
+  }
+
+  //--- Arquivo de Resumo Final
+  onResumoFinal(obj:any){
+    
+    //this.pageActions = [
+    //  { label: 'Voltar',    icon: 'po-icon-arrow-left', action: () => this.voltar()},
+    //  { label: 'Atualizar', icon: 'po-icon-arrow-left', action: () => this.verificarNotas()},
+    //]
+    this.loadTela         = true
+    this.listaErros       = []
+    this.cMensagemErroRPW = ''
+    this.consolidacao     = history.state.consolidacao
+    this.colunasErro      = this.srvTotvs.obterColunasErrosProcessamento()
+
+    //if(obj.situacao.toUpperCase() === "L")
+      this.consolidacao = obj.nrConsolidacao
+      this.verificarResumo()
+      this.Resumo?.open()
+    //this.loadTela = false
+      //this.AbrirTela(obj, 'resumofinal')
+    //else
+      //this.srvNotification.error("Situação do processo não permite chamar esta tela !")
+  }
+
+  //--- Abrir tela de Resumo Final
+  AbrirTela(obj:any, cTela:string){
+      this.loadTela=true
+      //Setar Estabelecimento e Usuario utilizado no calculo
+      //this.srvTotvs.SetarUsuario(obj["cod-estabel"], obj["cod-emitente"], obj["nr-process"])
+      //Parametros da Nota
+      //let paramsTec: any = {codEstabel: obj["cod-estabel"], codTecnico: obj["cod-emitente"]};
+      //Chamar Método
+      //this.srvTotvs.ObterNrProcesso(paramsTec).subscribe({
+      //  next: (response: any) => {
+          //Atualizar Informacoes Tela
+      //    let estab = this.listaEstabelecimentos.find((o) => o.value === this.codEstabel);
+      //    this.srvTotvs.EmitirParametros({estabInfo: estab.label, tecInfo: `${obj['cod-emitente']} ${obj['nome-abrev']}`, processoInfo:response.nrProcesso, processoSituacao: response.situacaoProcesso})
+          this.router.navigate([cTela], {
+                                          state: { consolidacao: obj.nrConsolidacao }
+                                        }
+                              )
+      //  },
+      //})
+    }
+
   //--- Reprocessar Faturamento
   onReprocessarFat(obj:any) {
   
+    if (obj.descPedExec.toUpperCase().includes('EXECUTANDO PEDIDO') || obj.descPedExec.toUpperCase().includes('ENFILEIRADO')){
+      this.srvNotification.error('Não é permitido o reprocessamento com RPW em execução !')
+      return
+    }
+
     this.srvDialog.confirm({
       title: 'REPROCESSAR FATURAMENTO',
       message:
-        "<div class='dlg'><i class='bi bi-question-circle po-font-subtitle'></i><span class='po-font-text-large'> CONFIRMA REPROCESSAMENTO ?</span></div><p>O reprocessamento só deve ser usado com a certeza da parada do processamento normal.</p>",
-        
-
+        "<div class='dlg'><i class='bi bi-question-circle po-font-subtitle'></i><span class='po-font-text-large'> CONFIRMA REPROCESSAMENTO ?</span></div><p>O reprocessamento só deve ser usado com a certeza da parada do processamento normal.</p>",    
       confirm: () => {
-        this.loadTela = true;
-        let params: any = { paramsTela: {codEstab: obj['cod-estabel'], codEmitente: obj['cod-emitente'], nrProcess: obj['nr-process']},}
+        
+        //let params: any = { paramsTela: {codEstab: obj['cod-estabel'], codEmitente: obj['cod-emitente'], nrProcess: obj['nr-process']},}
+        if (obj.lFaturado === "Não"){
 
-        this.nrConsolidacao = obj.nrConsolidacao
-        this.onChangeFaturar()
-        /*
-        this.srvTotvs.ReprocessarCalculo(params).subscribe({
-          next: (response: any) => {
-            this.srvNotification.success('Execução do cálculo realizada com sucesso ! Processo RPW: ' + response.rpw)
-            this.onListar()
-            this.loadTela = false;
-          },
-          error: (e) => {
-          // this.srvNotification.error('Ocorreu um erro na requisição')
-            this.loadTela = false;
-          },
-        })
-        */
+          this.loadTela       = true
+          this.nrConsolidacao = obj.nrConsolidacao
+          this.onChangeFaturar()
+          
+        }
       },
       cancel: () => this.srvNotification.error('Cancelada pelo usuário'),
-    });
+    })
   }
   //--- Usado para obter dados ao expandir os detalhes do Grid
   public mostrarDetalhe(row: any, index: number) {
@@ -413,13 +517,23 @@ export class HomeComponent {
     this.loadTela      = true
     this.labelLoadTela = "Faturando Embarque"
 
+    //Inicializar acompanhamento rpw
+    this.numPedExec.update(() => 1)
+    
     let paramsTela: any = { codEstabel: this.codEstabelecimento, nrConsolidacao: this.nrConsolidacao, params: this.form.value}
     this.srvTotvs.FaturarEmbarque(paramsTela).subscribe({ //ponto 1
       next: (response: any) => {
         //this.loadTela = false
         this.srvNotification.success("Pedido e Execução [" + response.pedExec + "] Gerado para a Consolidação [" + this.nrConsolidacao + "]")
       
-        console.log(response.faturados.nrNotaFis)
+        //Acompanhar rpw
+        if (response.pedExec !== undefined){
+            this.numPedExec.update(() => response.pedExec)
+        }
+        else {
+            this.numPedExec.update(() => 0)
+        }       
+
       },
       error: (e) => this.loadTela = false,
       complete: () => {
@@ -486,7 +600,7 @@ export class HomeComponent {
         })
         
       },
-      cancel: () => { }
+      cancel: () => { this.loadTela = false }
 
     })
 
@@ -506,6 +620,7 @@ export class HomeComponent {
     //Atualiza combo de consolidação concatenando os dados
     this.atualizaComboConsolidacao(this.listaConsolidaFiltro)
     this.atualizaComboConsolidacao(this.listaFaturadosFiltro)
+    this.atualizaComboConsolidacao(this.listaExecutandoFiltro)
   }
   //--- Mudar de Step
 
@@ -738,7 +853,8 @@ export class HomeComponent {
   changeOptions(selecionados: any[]) {
 
     this.listaSelecionados      = []
-    this.listaSelecionadosItens = []
+    //não posso limpar aqui senão zera a tablea de itens
+    //this.listaSelecionadosItens = []
 
     const sel = this.DadosSelecao.getSelectedRows()
     this.totSelecionado[0] = String(sel.length) //this.DadosSelecao.getSelectedRows().length.toString()
@@ -879,7 +995,7 @@ export class HomeComponent {
         }
 
         if (response && response.peditem && response.peditem.length > 0) {
-          this.listaSelecionadosItens          = response.peditem          
+          this.listaSelecionadosItens          = response.peditem 
         }
 
         /*
@@ -1026,11 +1142,13 @@ export class HomeComponent {
     if (passo.label === 'Resumo') {
       this.atualizaComboConsolidacao(this.listaConsolidaFiltro)
       this.atualizaComboConsolidacao(this.listaFaturadosFiltro)
+      this.atualizaComboConsolidacao(this.listaExecutandoFiltro)
     }
 
     if (passo.label === 'Pré-Faturamento') {
       this.atualizaComboConsolidacao(this.listaConsolidaFiltro)
       this.atualizaComboConsolidacao(this.listaFaturadosFiltro)
+      this.atualizaComboConsolidacao(this.listaExecutandoFiltro)
       
       if (this.previousStep === "Resumo"){
         this.onFatChange()
@@ -1084,8 +1202,9 @@ export class HomeComponent {
 
               //Carrega lista de Filtro
               //this.listaConsolidaFiltro = this.listaConsolida.filter(item => item.lConsolidado === 'Não')
-              this.listaFaturadosFiltro = this.listaConsolida.filter(item => item.lConsolidado === 'Sim' /*&& (!item.lFaturado || item.lFaturado.trim() === '')*/ )
-
+              this.listaFaturadosFiltro  = this.listaConsolida.filter(item => item.lFaturado === 'Sim' /*&& (!item.lFaturado || item.lFaturado.trim() === '')*/ )
+              this.listaExecutandoFiltro = this.listaConsolida.filter(item => item.lFaturado === 'Não' /*&& (!item.lFaturado || item.lFaturado.trim() === '')*/ )
+              
               if (response && response.pedidos && response.pedidos.length > 0) {
                 this.itemsTotal = [...response.pedidos, ...response.consolidar.filter((item: any) => item.lFaturado === 'Não' || item.lFaturado === '')]
               }
@@ -1149,7 +1268,6 @@ export class HomeComponent {
   //--- Filtrar Faturados
    public onFiltrarFaturadosChange(obj: any) {
 
-    console.log(this.listaFaturados)
     this.listaFaturadosFiltro = this.listaFaturados.filter(item => {
       const filtroFaturados = obj ? Number(item.nrConsolidacao) === Number(obj) : true
 

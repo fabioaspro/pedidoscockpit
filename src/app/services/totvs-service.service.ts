@@ -114,6 +114,21 @@ export class TotvsService {
       { property: 'nomTransp',     label: 'Transporte', },
       { property: 'dthrAlt',       label: 'Data Alt.',         type:'date', format: "dd/MM/yyyy"},
       { property: 'userAlt',       label: 'Usuário' },
+      { property: 'lConsolidado',  label: 'Consolidado', visible: true },
+      { property: 'lFaturado',     label: 'Faturado',    visible: true },
+      
+    ]
+
+  }
+
+  obterColunasConsolidaExec(): Array<PoTableColumn> {
+    return [
+      { property: 'codEstabel',    label: 'Estab.',   visible: true, width: '120px'},
+      { property: 'nrConsolidacao',label: 'Nr.Cons.', visible: true, width: '140px', type: 'number'},
+      { property: 'descEmitente',  label: 'Emitente' },
+      { property: 'nomTransp',     label: 'Transporte', },
+      { property: 'dthrAlt',       label: 'Data Alt.',         type:'date', format: "dd/MM/yyyy"},
+      { property: 'userAlt',       label: 'Usuário' },
       { property: 'pedExec',       label: 'pedExec',           type:'cellTemplate' },
       { property: 'opcoes',        label: 'Ações Disponíveis', type:'cellTemplate' },      
       { property: 'lConsolidado',  label: 'Consolidado', visible: true },
@@ -121,6 +136,35 @@ export class TotvsService {
       
     ]
 
+  }
+
+  obterColunasConsolidaFat(): Array<PoTableColumn> {
+    return [
+      { property: 'codEstabel',    label: 'Estab.',   visible: true, width: '120px'},
+      { property: 'nrConsolidacao',label: 'Nr.Cons.', visible: true, width: '140px', type: 'number'},
+      { property: 'descEmitente',  label: 'Emitente' },
+      { property: 'nomTransp',     label: 'Transporte', },
+      { property: 'dthrAlt',       label: 'Data Alt.',         type:'date', format: "dd/MM/yyyy"},
+      { property: 'userAlt',       label: 'Usuário' },
+      { property: 'opcoes',        label: 'Ações Disponíveis', type:'cellTemplate' },
+      { property: 'lConsolidado',  label: 'Consolidado', visible: true },
+      { property: 'lFaturado',     label: 'Faturado',    visible: true },
+      
+    ]
+
+  }
+
+  obterColunasErrosProcessamento(): Array<PoTableColumn> {
+    return [
+      { property: 'nomeArquivo', label: 'Arquivo', type: 'columnTemplate' },
+      { property: 'mensagem', label: 'Mensagem' },
+      {
+        property: 'dataHora',
+        label: 'Data',
+        type: 'date',
+        format: 'dd/MM/yyyy hh:mm:ss',
+      },
+    ];
   }
 
   obterColunasConsolidaItems(): Array<PoTableColumn> {
@@ -144,7 +188,30 @@ export class TotvsService {
     return [
       { property: 'codEstabel',    label: 'Estab.',   visible: false, width: '120px'},
       { property: 'nrConsolidacao',label: 'Nr.Cons.', visible: true,  width: '140px', type: 'number'},
-      { property: 'dtEmisNota',    label: 'Data', type:'date', format: "dd/MM/yyyy"},
+      { property: 'dtEmisNota',    label: 'Data', type: 'date', format: "dd/MM/yyyy"},
+      { property: 'idiSit',        label: 'Sefaz',type: 'label',
+        labels: [
+          { value: 1,   color: 'color-08', textColor: 'white', label: 'NFe não autorizada',},
+          { value: 2,   color: 'color-08', textColor: 'white', label: 'Em Processamento',},
+          { value: 3,   color: 'color-09', textColor: 'white', label: 'Autorizada',},
+          { value: 4,   color: 'color-07', textColor: 'white', label: 'Uso denegado',},
+          { value: 5,   color: 'color-07', textColor: 'white', label: 'Docto Rejeitado',},
+          { value: 6,   color: 'color-07', textColor: 'white', label: 'Docto Cancelado',},
+          { value: 7,   color: 'color-07', textColor: 'white', label: 'Docto Inutilizado',},
+          { value: 8,   color: 'color-08', textColor: 'white', label: 'Em processamento no Aplicativo de Transmissão',},
+          { value: 9,   color: 'color-08', textColor: 'white', label: 'Em processamento na SEFAZ',},
+          { value: 10,  color: 'color-08', textColor: 'white', label: 'Em processamento no SCAN',},
+          { value: 11,  color: 'color-10', textColor: 'white', label: 'NF-e Gerada',},
+          { value: 12,  color: 'color-08', textColor: 'white', label: 'NF-e em Processo de Cancelamento',},
+          { value: 13,  color: 'color-08', textColor: 'white', label: 'NF-e em Processo de Inutilizacao',},
+          { value: 14,  color: 'color-08', textColor: 'white', label: 'NF-e Pendente de Retorno',},
+          { value: 15,  color: 'color-07', textColor: 'white', label: 'DPEC recebido pelo SCE',},
+          { value: 99,  color: 'color-08', textColor: 'white', label: 'Aguardando NFE',},
+          { value: 100, color: 'color-10', textColor: 'white', label: 'Nota Atualizada Estoque',},
+          { value: 102, color: 'color-07', textColor: 'white', label: 'ERRO verificar pendências',},
+          { value: 103, color: 'color-08', textColor: 'white', label: 'Aguardando Reprocessamento',},
+        ],
+      },
       { property: 'cSerie',        label: 'Serie' },
       { property: 'nrNotaFis',     label: 'Nota Fiscal' },      
       { property: 'cddEmbarqRes',  label: 'Embarque/Res'},
@@ -191,9 +258,24 @@ export class TotvsService {
     return this.http.get(`${this._urlGeral}/ObterCadastro`, {params:params, headers:headersTotvs}).pipe(take(1));
   }
 
+  //--- Obter Situação do RPW 
+  public piObterSituacaoRPW(params?: any){
+    return this.http.get(`${this._urlGeral}/piObterSituacaoRPW`, {params:params, headers:headersTotvs}).pipe(take(1));
+  }
+
   //--- Parametros do Estabelecimento
   public ObterParamsDoEstabelecimento(id: string) {
     return this.http.get<any>(`${this._url}/ObterParamsEstab?codEstabel=${id}`, {headers: headersTotvs,}).pipe(take(1));
+  }
+
+  //--- Obter Dados do Resumo Final
+  public ObterResumo(params?: any) {
+    return this.http.post(`${this._url}/ObterResumo`, params, { headers: headersTotvs }).pipe(take(1));
+  }
+
+  //--- Obter dados do Relatório
+  public ObterDadosRelatorio(params?: any){
+    return this.http.post(`${this._url}/ObterDadosRelatorio`, params, { headers:headersTotvs}).pipe(take(1));
   }
 
   //--- COMBOBOX TECNICOS

@@ -4,7 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Subject, map, take, tap } from 'rxjs';
 import { Observable } from 'rxjs';
 import { PoTableColumn } from '@po-ui/ng-components';
-import { environment } from '../environments/environment.prod';
+import { environment } from '../environments/environment';
 
 //--- Header somente para DEV
 const headersTotvs = new HttpHeaders(environment.totvs_header)    
@@ -15,7 +15,7 @@ const headersTotvs = new HttpHeaders(environment.totvs_header)
 
 export class TotvsService46 {
   private reg!:any;
-  _url46 = '' //environment.totvs46_url;
+  _url46 = '' //environment.totvs46_url
 
   constructor(private http: HttpClient ) { }
 
@@ -117,6 +117,9 @@ obterColunasArquivos(): Array<PoTableColumn> {
                   take(1));
   }
 
+  public ObterCadastro(params?: any){
+    return this.http.get(`${this._url46}/ObterCadastro`, {params:params, headers:headersTotvs}).pipe(take(1));
+  }
   public ObterEmitentesDoEstabelecimento(id:string){
     return this.http.get<any>(`${this._url46}/ObterTecEstab?codEstabel=${id}`, {headers:headersTotvs})
                  .pipe(
@@ -236,11 +239,6 @@ obterColunasArquivos(): Array<PoTableColumn> {
                    .pipe(take(1));
   }
 
-  public ObterCadastro(params?: any){
-    return this.http.get(`${this._url46}/ObterCadastro`, {params:params, headers:headersTotvs})
-                   .pipe(take(1));
-  }
-
   public ObterArquivo(params?: any){
     return this.http.get(`${this._url46}/ObterArquivo`, {params:params, headers:headersTotvs})
                    .pipe(take(1));
@@ -276,10 +274,7 @@ obterColunasArquivos(): Array<PoTableColumn> {
                    .pipe(take(1));
   }
 
-  public piObterSituacaoRPW(params?: any){
-    return this.http.get(`${this._url46}/piObterSituacaoRPW`, {params:params, headers:headersTotvs})
-                   .pipe(take(1));
-  }
+  
 
   public DestravarProcesso(params?: any){
     return this.http.get(`${this._url46}/DestravarProcesso`, {params:params, headers:headersTotvs})
@@ -289,6 +284,7 @@ obterColunasArquivos(): Array<PoTableColumn> {
 
 */
 
+  
 
    //Ordenacao campos num array
    public ordenarCampos =

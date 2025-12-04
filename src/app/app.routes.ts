@@ -6,7 +6,8 @@ export const routes: Routes=[
     {path: '', redirectTo: '/home', pathMatch: 'full'},
     {path:'home',    loadComponent:()=> import('./components/home/home.component').then(c=>c.HomeComponent)},
     {path:'relmovto',loadComponent:()=> import('./components/relmovto/relmovto.component').then(c=>c.RelmovtoComponent)},
-    {path:'envhist', loadComponent:()=> import('../app/envhist/envhist.component').then(c=>c.EnvhistComponent)}
+    {path:'envhist', loadComponent:()=> import('../app/envhist/envhist.component').then(c=>c.EnvhistComponent)},
+    {path:'resumofinal', loadComponent:()=> import('../app/components/resumo-final/resumo-final.component').then(c=>c.ResumoFinalComponent)},
 
     /*
     {path:'informe2', loadComponent:()=> import('../app/components/informe2/informe2.component').then(c=>c.Informe2Component)},

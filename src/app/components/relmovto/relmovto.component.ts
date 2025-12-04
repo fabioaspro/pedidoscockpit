@@ -42,6 +42,15 @@ export class RelmovtoComponent {
   private srvNotification = inject(PoNotificationService);
   private router          = inject(Router)
 
+  //-- Variaveis do po-table
+  listaFaturadosFiltro:              any[] = []
+  alturaGridConsolidados:           number = window.innerHeight - 100
+  colunasConsolidaFat:Array<PoTableColumn> = []
+  listaFaturadosItensFiltro:         any[] = []
+  listaFaturadosItens:               any[] = []
+  colunasFaturados:   Array<PoTableColumn> = []
+  loadTela:                        boolean = false
+
   readonly acaoSelecionar: PoModalAction = {
     label: 'Salvar',
     action: () => {
@@ -55,6 +64,11 @@ export class RelmovtoComponent {
       this.telaSelecao?.close();
     },
   };
+
+  //--- Usado para obter dados ao expandir os detalhes do Grid
+  public mostrarDetalhe(row: any, index: number) {
+    return true;
+  }
 
   dtIni: string = <any>new Date();
   dtFim: string = <any>new Date();
@@ -70,19 +84,21 @@ export class RelmovtoComponent {
 
   alturaGrid:number=window.innerHeight - 250
   
-  //---Grid
-  colunas!: PoTableColumn[]
-  lista!: any[]
-  listaDados!:any[]
-  loadTela:boolean=false
-
 
   ngOnInit(): void {
 
     //Colunas grids
     //this.colunas = this.srvTotvs.obterColunasRelatorio();
 
-    this.srvTotvs.EmitirParametros({ tituloTela: 'EMPRÉSTIMOS - RELATÓRIO MOVIMENTAÇÕES'});
+    this.srvTotvs.EmitirParametros({ tituloTela: 'BPD - RELATÓRIO DE CONSOLIDAÇÃO'})
+    this.colunasConsolidaFat     = this.srvTotvs.obterColunasConsolidaFat()
+    //this.colunasConsolidaItens   = this.srvTotvs.obterColunasConsolidaItems()
+    this.colunasFaturados        = this.srvTotvs.obterColunasFaturado()
+  }
+
+  //--- Obter os Itens selecionados ao expandir o Grid
+  public ObterItensFaturados(obj: any) {
+    this.listaFaturadosItensFiltro = this.listaFaturadosItens.filter(item => item.nrConsolidacao === obj.nrConsolidacao)
   }
 
   Detalhe(obj:any){
@@ -96,30 +112,30 @@ export class RelmovtoComponent {
     this.loadTela=true
     let paramsTela: any = { paramsTela: this.formSelecao.value }
 
-    /*
     this.srvTotvs.ObterDadosRelatorio(paramsTela).subscribe({
       next:(response:any)=>{
         if (response === null){
-          this.lista=[]
+          this.listaFaturadosFiltro=[]
           this.srvNotification.warning("Não existe dados para o range de seleção !")
           return
         }
-        this.lista = response.items;
+        this.listaFaturadosFiltro = response.items;
         this.loadTela=false
-    },
-      complete: ()=> {this.loadTela=false}
+      },
+      complete: ()=> {this.loadTela=false},
+      error: ()=> {this.loadTela=false}
     })
-    */
+
   }
 
 
   GerarExcel(){
 
-    this.srvExcel.exportarParaExcel('LISTA DE EMPRÉSTIMOS',
-                                    'Relatório Detalhado de Empréstimos',
-                                    this.colunas,
-                                    this.lista,
-                                    'Emprestimos',
+    this.srvExcel.exportarParaExcel('LISTA DE CONSOLIDAÇÃO',
+                                    'Relatório Detalhado de Consolidação',
+                                    this.colunasConsolidaFat,
+                                    this.listaFaturadosFiltro,
+                                    'Consolidação',
                                     'Dados')
 
   }

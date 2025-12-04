@@ -181,7 +181,6 @@ export class AppComponent implements OnInit {
   /*---Não usada
   DesbloquearProcesso() {
     let params: any = { codEstabel: this.estabInfo.split(' ')[0], nrProcess: this.processoInfo }
-    console.log(params)
     this.srvTotvs46.DestravarProcesso(params).subscribe({
       next: (response: any) => { }
     })

@@ -10,24 +10,28 @@
 </div>
 
 <div class="grid">
-  <po-table #grid2  [p-items]="lista"
-                   [p-columns]="colunas" 
-                   [p-striped]="true" 
-                   p-sort="true" 
-                   [p-hide-table-search]="false" 
-                   [p-hide-columns-manager]="true" 
-                   p-container="true" 
-                   [p-sort]="true"
-                   [p-height]="alturaGrid" >
-                   <ng-template p-table-cell-template let-column="column" let-row="row">
-           
-                    @if(column.property === 'opcoes'){
-                        <div class="menuGrid">
-                            <div><button class="btn"  (click)="Detalhe(row)"><p><i class="bi bi-archive"></i> Notas Fiscais</p></button></div>
-                        </div>
-                    }
-                  </ng-template>
-          
+  <po-table [p-items]="listaFaturadosFiltro" 
+            [p-striped]="true" 
+            [p-sort]="true" 
+            [p-loading]="loadTela"
+            [p-height]="alturaGridConsolidados" 
+            [p-columns]="colunasConsolidaFat" 
+            [p-hide-table-search]="true"
+            [p-hide-columns-manager]="true" 
+            (p-expanded)="ObterItensFaturados($event)">
+
+    <ng-template p-table-row-template let-rowItem let-i="rowIndex" 
+                [p-table-row-template-show]="mostrarDetalhe">
+      <po-table [p-columns]="colunasFaturados" 
+                [p-items]="listaFaturadosItensFiltro" 
+                [p-striped]="true"
+                [p-sort]="true" 
+                [p-height]="215" 
+                [p-hide-table-search]="false"
+                [p-hide-columns-manager]="true" 
+                p-container="true" >
+      </po-table>
+    </ng-template>
   </po-table>
 
   
@@ -41,7 +45,7 @@
                               [p-secondary-action]="acaoCancelarSelecao">
 
 
-      <form #formSelecao="ngForm">
+    <form #formSelecao="ngForm">
         <div class="po-row">
             <po-datepicker
             class="po-md-6"
@@ -91,6 +95,7 @@
           </po-input>
       </div>
 
+      <!--
         <div class="po-row">
             <po-input
             class="po-md-6"
@@ -159,5 +164,7 @@
           >
           </po-input>
       </div>
-        </form>
+      -->
+        
+    </form>
   </po-modal>
