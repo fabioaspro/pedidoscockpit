@@ -10,6 +10,7 @@ import { NgClass, NgIf, CurrencyPipe, CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { BtnDownloadComponent } from '../btn-download/btn-download.component';
 import { RpwComponent } from '../rpw/rpw.component';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -152,6 +153,8 @@ export class HomeComponent {
   alturaGridLog:      number=window.innerHeight - 555
   cMensagemErroRPW    = ''
 
+  versao!:string
+  
   //--- Referencias
   @ViewChild('detailsModalTot',  { static: true }) detailsModalTot:  PoModalComponent | undefined
   @ViewChild('detailsModalPend', { static: true }) detailsModalPend: PoModalComponent | undefined
@@ -214,6 +217,7 @@ export class HomeComponent {
   //-- ngOnInit inicial da tela
   ngOnInit(): void {
 
+    this.versao = environment.versao
     this.totSelecionado[3] = "Calcular"
     this.totSelecionado[4] = "Calcular"
 
@@ -1012,6 +1016,7 @@ export class HomeComponent {
           this.listaFaturados      = (this.listaFaturados      as any[]).sort(this.ordenarCampos(['nrConsolidacao']))
         }*/
 
+          console.log(response)
         if (response && response.consolidar && response.consolidar.length > 0) { //ponto 2
           
           this.listaConsolidaItens = response.consolidar
@@ -1038,6 +1043,8 @@ export class HomeComponent {
 
         }
         else {
+
+          console.log('ponto2')
 
           this.listaConsolida = []
           if (response && response.pedidos && response.pedidos.length > 0) {
@@ -1089,7 +1096,7 @@ export class HomeComponent {
   public onChangeStep(obj: any) {    
 
     //Informacoes iniciais tela
-    this.srvTotvs.EmitirParametros({ tituloTela: 'COCKPIT DE PEDIDOS - ' + obj.label + ' Estabelecimento [' + this.codEstabelecimento + ']', abrirMenu: false })
+    this.srvTotvs.EmitirParametros({ tituloTela: this.versao + ' - COCKPIT DE PEDIDOS - ' + obj.label + ' Estabelecimento [' + this.codEstabelecimento + ']', abrirMenu: false })
 
 /*
 

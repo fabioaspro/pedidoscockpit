@@ -4,9 +4,9 @@
 
 export const environment = {
   production: false ,
-  versao:'1.0',
-  totvs_url:       'https://hawebdev.dieboldnixdorf.com.br:8543/api/integracao/services/v1/apipedidoscockpit',
-  totvs_url_geral: 'https://hawebdev.dieboldnixdorf.com.br:8543/api/integracao/utils/v1/apidngeral',
+  versao:'1.00.000',
+  totvs_url:       'https://hawebdev.dieboldnixdorf.com.br:8143/api/integracao/services/v1/apipedidoscockpit',
+  totvs_url_geral: 'https://hawebdev.dieboldnixdorf.com.br:8143/api/integracao/utils/v1/apidngeral',
   //totvs41_url:   'https://hawebdev.dieboldnixdorf.com.br:8543/api/integracao/aat/v1/apiesaa041',
   //totvs46_url:   'https://hawebdev.dieboldnixdorf.com.br:8543/api/integracao/aat/v1/apiesaa046',
   //totvs_url:     'https://totvsapptst.dieboldnixdorf.com.br:8543/api/integracao/aat/v1/apiesaa041',
